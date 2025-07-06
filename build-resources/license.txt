@@ -1,0 +1,33 @@
+CONTRATO DE LICENCIA DE SOFTWARE - AGROGESTION
+
+Copyright (c) 2024 AgroGestión. Todos los derechos reservados.
+
+TÉRMINOS Y CONDICIONES DE USO
+
+1. CONCESIÓN DE LICENCIA
+Se le concede una licencia limitada, no exclusiva y no transferible para usar AgroGestión en sus operaciones agrícolas de acuerdo con estos términos.
+
+2. RESTRICCIONES
+- No puede modificar, redistribuir o crear obras derivadas del software
+- No puede realizar ingeniería inversa del software
+- No puede usar el software para propósitos ilegales
+
+3. PROPIEDAD INTELECTUAL
+AgroGestión y todos sus componentes son propiedad exclusiva del desarrollador.
+
+4. GARANTÍA LIMITADA
+El software se proporciona "tal como está" sin garantías de ningún tipo.
+
+5. LIMITACIÓN DE RESPONSABILIDAD
+En ningún caso el desarrollador será responsable por daños directos, indirectos, incidentales o consecuentes.
+
+6. TERMINACIÓN
+Esta licencia es efectiva hasta que sea terminada por cualquiera de las partes.
+
+Al instalar o usar AgroGestión, usted acepta estar sujeto a los términos de este acuerdo.
+
+Para soporte técnico o consultas sobre licencias, contacte:
+Email: soporte@agrogestion.com
+Sitio web: www.agrogestion.com
+
+Última actualización: Diciembre 2024

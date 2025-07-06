@@ -1,0 +1,193 @@
+{
+  "name": "agro-gestion-app",
+  "version": "1.0.0",
+  "description": "Aplicación de gestión agrícola con manejo centralizado de stock",
+  "author": "Tu Empresa",
+  "private": true,
+  "main": "public/electron.js",
+  "homepage": "./",
+  "browserslist": {
+    "production": [
+      "last 1 electron version",
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 electron version",
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "scripts": {
+    "react-start": "react-scripts start",
+    "react-build": "react-scripts build",
+    "react-test": "react-scripts test",
+    "react-eject": "react-scripts eject",
+    "electron": "electron .",
+    "electron-dev": "cross-env NODE_ENV=development ELECTRON_IS_DEV=true electron .",
+    "electron-prod": "cross-env NODE_ENV=production electron .",
+    "start": "concurrently \"cross-env BROWSER=none npm run react-start\" \"wait-on http://localhost:3000 && npm run electron-dev\"",
+    "dev": "npm run start",
+    "prebuild": "npm run clean",
+    "build": "node scripts/build-agrogestion.js",
+    "postbuild": "",
+    "clean": "rimraf dist build",
+    "copy-electron": "copyfiles -u 1 \"public/electron.js\" \"public/preload.js\" build/",
+    "copy-assets": "if exist public\\assets copyfiles -u 1 \"public/assets/**/*\" build/",
+    "create-icons": "node scripts/create-icons.js",
+    "prepack": "npm run build",
+    "pack": "electron-builder --dir",
+    "pack-win": "electron-builder --win --dir",
+    "predist": "npm run build",
+    "dist": "electron-builder",
+    "dist-win": "electron-builder --win",
+    "dist-win-64": "electron-builder --win --x64",
+    "dist-win-32": "electron-builder --win --ia32",
+    "dist-nsis": "electron-builder --win nsis --x64",
+    "dist-msi": "electron-builder --win msi --x64",
+    "dist-portable": "electron-builder --win portable --x64",
+    "test-build": "npm run build && npm run pack-win",
+    "test-installer": "npm run build && npm run dist-win-64",
+    "create-admin": "node scripts/createAdmin.js",
+    "setup": "npm install && npm run create-icons",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "build": {
+    "appId": "com.agrogestion.app",
+    "productName": "AgroGestión",
+    "copyright": "Copyright © 2025 Tu Empresa",
+    "buildVersion": "1.0.0",
+    "directories": {
+      "buildResources": "build-resources",
+      "output": "dist"
+    },
+    "files": [
+      "build/**/*",
+      "public/electron.js",
+      "public/preload.js",
+      "!public/assets",
+      "node_modules/**/*",
+      "!node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!node_modules/*.d.ts",
+      "!node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+      "!**/{appveyor.yml,.travis.yml,circle.yml}",
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
+    ],
+    "extraResources": [
+      {
+        "from": "public/assets",
+        "to": "assets",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "compression": "maximum",
+    "artifactName": "${productName}-v${version}-${os}-${arch}.${ext}",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "msi",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build-resources/icon.ico",
+      "requestedExecutionLevel": "asInvoker",
+      "publisherName": "Tu Empresa",
+      "legalTrademarks": "AgroGestión es marca registrada de Tu Empresa",
+      "verifyUpdateCodeSignature": false,
+      "forceCodeSigning": false,
+      "signAndEditExecutable": false,
+      "fileAssociations": [
+        {
+          "ext": "agro",
+          "name": "AgroGestión Data File",
+          "description": "Archivo de datos de AgroGestión",
+          "icon": "build-resources/file-icon.ico",
+          "role": "Editor"
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "AgroGestión",
+      "menuCategory": "Productividad",
+      "runAfterFinish": true,
+      "installerIcon": "build-resources/installer.ico",
+      "uninstallerIcon": "build-resources/uninstaller.ico",
+      "installerHeaderIcon": "build-resources/header.ico",
+      "deleteAppDataOnUninstall": false,
+      "displayLanguageSelector": false,
+      "language": "3082",
+      "artifactName": "${productName}-Setup-v${version}.${ext}",
+      "warningsAsErrors": false,
+      "differentialPackage": false
+    },
+    "msi": {
+      "oneClick": false,
+      "upgradeCode": "A1B2C3D4-E5F6-7890-ABCD-EF1234567890",
+      "warningsAsErrors": false,
+      "artifactName": "${productName}-Installer-v${version}-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-v${version}-${arch}.${ext}",
+      "requestExecutionLevel": "user"
+    }
+  },
+  "dependencies": {
+    "dayjs": "^1.11.13",
+    "electron-log": "^5.4.0",
+    "firebase": "^11.7.3",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
+    "prompt-sync": "^4.2.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-error-boundary": "^6.0.0",
+    "react-router-dom": "^7.6.0",
+    "react-scripts": "^5.0.1",
+    "uuid": "^11.1.0",
+    "web-vitals": "^5.0.1"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "copyfiles": "^2.4.1",
+    "cross-env": "^7.0.3",
+    "electron": "^36.2.1",
+    "electron-builder": "^25.1.8",
+    "electron-is-dev": "^3.0.1",
+    "rimraf": "^3.0.2",
+    "wait-on": "^8.0.3"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}
