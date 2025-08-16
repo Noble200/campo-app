@@ -77,6 +77,17 @@ const ProductDetailDialog = ({ product, fields, warehouses, onClose, onEditProdu
       'herramienta': 'Herramienta',
       'semilla': 'Semilla',
       'fertilizante': 'Fertilizante',
+      'fertilizante_foliar': 'Fertilizante Foliar', 
+      'curasemilla_quimico': 'Curasemilla Químico', 
+      'curasemilla_biologico': 'Curasemilla Biológico', 
+      'inoculante': 'Inoculante', 
+      'insecticida': 'Insecticida', 
+      'fungicida': 'Fungicida', 
+      'herbicida': 'Herbicida', 
+      'lubricante': 'Lubricante', 
+      'combustible': 'Combustible',
+      'coadyuvante': 'Coadyuvante', 
+      'bioestimulante': 'Bioestimulante', 
       'pesticida': 'Pesticida',
       'maquinaria': 'Maquinaria',
       'combustible': 'Combustible',
@@ -86,14 +97,33 @@ const ProductDetailDialog = ({ product, fields, warehouses, onClose, onEditProdu
     return categories[category] || category;
   };
 
+  const isFitosanitaryProduct = (category) => {
+    const fitosanitaryCategories = [
+      'insecticida',
+      'fungicida', 
+      'herbicida',
+      'curasemilla_quimico',
+      'curasemilla_biologico',
+      'pesticida'
+    ];
+    return fitosanitaryCategories.includes(category);
+  };
+
   // Función para obtener el texto del tipo de almacenamiento
   const getStorageTypeText = (storageType) => {
     const types = {
       'bolsas': 'Bolsas',
+      'bidones': 'Bidones', 
+      'botellas': 'Botellas', 
+      'big-bag': 'Big-bag', 
+      'tambores': 'Tambores',
+      'bag_in_box': 'Bag in box', 
+      'dosis': 'Dosis', 
+      'packs': 'Packs', 
+      'sobres': 'Sobres', 
       'suelto': 'Suelto',
       'unidad': 'Por unidad',
       'sacos': 'Sacos',
-      'tambores': 'Tambores',
       'contenedores': 'Contenedores',
       'cajas': 'Cajas'
     };
@@ -149,9 +179,23 @@ const ProductDetailDialog = ({ product, fields, warehouses, onClose, onEditProdu
               </div>
               <div className="product-summary-content">
                 <h3 className="product-name">{product.name}</h3>
-                <div className="product-category">{getCategoryText(product.category)}</div>
+                <div className="product-category-container">
+                  <span className="product-category">{getCategoryText(product.category)}</span>
+                  {/* 🆕 Badge para fitosanitarios */}
+                  {isFitosanitaryProduct(product.category) && (
+                    <span className="fitosanitary-badge">
+                      <i className="fas fa-leaf"></i> Fitosanitario
+                    </span>
+                  )}
+                </div>
                 {product.code && (
                   <div className="product-code">Código: {product.code}</div>
+                )}
+                {/* 🆕 Mostrar fabricante en el encabezado si existe */}
+                {product.manufacturer && (
+                  <div className="product-manufacturer-header">
+                    <i className="fas fa-industry"></i> {product.manufacturer}
+                  </div>
                 )}
               </div>
               <div className="product-stock-display">
@@ -201,6 +245,30 @@ const ProductDetailDialog = ({ product, fields, warehouses, onClose, onEditProdu
                   <span className="detail-label">Categoría</span>
                   <span className="detail-value">{getCategoryText(product.category)}</span>
                 </div>
+                
+                {/* 🆕 FABRICANTE */}
+                {product.manufacturer && (
+                  <div className="detail-item">
+                    <span className="detail-label">
+                      <i className="fas fa-industry"></i> Fabricante
+                    </span>
+                    <span className="detail-value manufacturer-detail">
+                      {product.manufacturer}
+                    </span>
+                  </div>
+                )}
+                
+                {/* 🆕 PRINCIPIO ACTIVO */}
+                {product.activeIngredient && (
+                  <div className="detail-item">
+                    <span className="detail-label">
+                      <i className="fas fa-flask"></i> Principio Activo
+                    </span>
+                    <span className="detail-value active-ingredient-detail">
+                      {product.activeIngredient}
+                    </span>
+                  </div>
+                )}
                 
                 <div className="detail-item">
                   <span className="detail-label">Forma de almacenamiento</span>
@@ -283,7 +351,7 @@ const ProductDetailDialog = ({ product, fields, warehouses, onClose, onEditProdu
             </div>
             
             {/* Información del proveedor y costos */}
-            {(product.supplierName || product.cost || product.supplierCode) && (
+            {(product.supplierName || product.cost || product.supplierCode || product.manufacturer) && (
               <div className="detail-section">
                 <h3 className="section-title">
                   <i className="fas fa-truck"></i> Proveedor y costos
@@ -294,6 +362,14 @@ const ProductDetailDialog = ({ product, fields, warehouses, onClose, onEditProdu
                     <div className="detail-item">
                       <span className="detail-label">Proveedor</span>
                       <span className="detail-value">{product.supplierName}</span>
+                    </div>
+                  )}
+                  
+                  {/* Si no hay proveedor pero hay fabricante, mostrarlo aquí también */}
+                  {!product.supplierName && product.manufacturer && (
+                    <div className="detail-item">
+                      <span className="detail-label">Fabricante</span>
+                      <span className="detail-value">{product.manufacturer}</span>
                     </div>
                   )}
                   

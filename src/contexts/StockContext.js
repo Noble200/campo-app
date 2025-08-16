@@ -1,4 +1,3 @@
-// src/contexts/StockContext.js - Contexto corregido para productos
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { 
   collection, 
@@ -229,6 +228,8 @@ export function StockProvider({ children }) {
         name: productData.name,
         code: productData.code,
         category: productData.category,
+        manufacturer: productData.manufacturer || null,
+        activeIngredient: productData.activeIngredient || null,
         storageType: productData.storageType,
         unit: productData.unit,
         stock: Number(productData.stock) || 0, // CORREGIDO: usar 'stock' y asegurar conversión
@@ -262,6 +263,8 @@ export function StockProvider({ children }) {
       // Insertar producto en Firestore
       const productRef = await addDoc(collection(db, 'products'), dbProductData);
       
+      console.log('Producto añadido con ID:', productRef.id); // Debug
+      
       // Recargar productos
       await loadProducts();
       
@@ -277,12 +280,16 @@ export function StockProvider({ children }) {
   const updateProduct = useCallback(async (productId, productData) => {
     try {
       setError('');
+
+      console.log('updateProduct - Datos recibidos:', productData); // Debug
       
       // Preparar datos para actualizar
       const updateData = {
         name: productData.name,
         code: productData.code,
         category: productData.category,
+        manufacturer: productData.manufacturer || null,
+        activeIngredient: productData.activeIngredient || null,
         storageType: productData.storageType,
         unit: productData.unit,
         stock: Number(productData.stock) || 0, // CORREGIDO: usar 'stock' y asegurar conversión
@@ -312,6 +319,8 @@ export function StockProvider({ children }) {
       
       // Actualizar producto en Firestore
       await updateDoc(doc(db, 'products', productId), updateData);
+
+      console.log('Producto actualizado:', productId); // Debug
       
       // Recargar productos
       await loadProducts();

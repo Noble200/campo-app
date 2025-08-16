@@ -1,4 +1,3 @@
-// src/components/panels/Products/ProductsPanel.js - Panel principal para gestión de productos
 import React from 'react';
 import './products.css';
 import ProductDialog from './ProductDialog';
@@ -62,6 +61,34 @@ const ProductsPanel = ({
   onRefresh,
   clearSpecialFilters // NUEVO
 }) => {
+
+  // Función para detectar productos fitosanitarios
+  const isFitosanitaryProduct = (category) => {
+    const fitosanitaryCategories = [
+      'insecticida',
+      'fungicida', 
+      'herbicida',
+      'curasemilla_quimico',
+      'curasemilla_biologico',
+      'pesticida'
+    ];
+    return fitosanitaryCategories.includes(category);
+  };
+
+  // Función para obtener fabricantes únicos (para filtros futuros)
+  const getUniqueManufacturers = () => {
+    if (!products || !Array.isArray(products)) return [];
+    
+    const manufacturers = new Set();
+    products.forEach(product => {
+      if (product.manufacturer && product.manufacturer.trim()) {
+        manufacturers.add(product.manufacturer.trim());
+      }
+    });
+    
+    return Array.from(manufacturers).sort();
+  };
+
   // Función para formatear fecha
   const formatDate = (date) => {
     if (!date) return 'Sin vencimiento';
@@ -113,6 +140,32 @@ const ProductsPanel = ({
     
     return diffDays;
   };
+
+  const getCategoryText = (category) => {
+    const categories = {
+      'insumo': 'Insumo',
+      'herramienta': 'Herramienta',
+      'semilla': 'Semilla',
+      'fertilizante': 'Fertilizante',
+      'fertilizante_foliar': 'Fertilizante Foliar',
+      'curasemilla_quimico': 'Curasemilla Químico',
+      'curasemilla_biologico': 'Curasemilla Biológico',
+      'inoculante': 'Inoculante',
+      'insecticida': 'Insecticida',
+      'fungicida': 'Fungicida',
+      'herbicida': 'Herbicida',
+      'lubricante': 'Lubricante',
+      'combustible': 'Combustible',
+      'coadyuvante': 'Coadyuvante',
+      'bioestimulante': 'Bioestimulante',
+      'pesticida': 'Pesticida',
+      'maquinaria': 'Maquinaria',
+      'otro': 'Otro'
+    };
+    
+    return categories[category] || category;
+  };
+
 
   // Mostrar estado de carga
   if (loading) {
@@ -208,6 +261,37 @@ const ProductsPanel = ({
               ))}
             </select>
           </div>
+
+          {/* 🆕 Filtro por fabricante */}
+          <div className="filter-item manufacturer-filter">
+            <label htmlFor="manufacturerFilter">Fabricante:</label>
+            <select
+              id="manufacturerFilter"
+              className="form-control"
+              value={filters?.manufacturer || 'all'}
+              onChange={(e) => onFilterChange('manufacturer', e.target.value)}
+              style={{ height: 'auto', minHeight: '40px', paddingTop: '8px', paddingBottom: '8px' }}
+            >
+              <option value="all">Todos los fabricantes</option>
+              {getUniqueManufacturers().map(manufacturer => (
+                <option key={manufacturer} value={manufacturer}>
+                  {manufacturer}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          {/* 🆕 Checkbox para solo fitosanitarios */}
+          <div className="filter-item">
+            <label>
+              <input
+                type="checkbox"
+                checked={filters?.onlyFitosanitary || false}
+                onChange={(e) => onFilterChange('onlyFitosanitary', e.target.checked)}
+              />
+              Solo fitosanitarios
+            </label>
+          </div>
         </div>
         
         <div className="search-container">
@@ -258,18 +342,41 @@ const ProductsPanel = ({
                         <span className="lot-number">{product.lotNumber || '-'}</span>
                       </div>
                     </td>
-                    <td>
-                      <div className="product-name-cell">
+                    <td className="product-name-cell">
+                      <div className="product-name-container">
+                        {/* Nombre principal */}
                         <div className="product-name">{product.name}</div>
+                        
+                        {/* Código si existe */}
                         {product.code && (
-                          <div className="product-code">{product.code}</div>
+                          <div className="product-code">Código: {product.code}</div>
+                        )}
+                        
+                        {/* 🆕 PRINCIPIO ACTIVO - Solo para productos fitosanitarios */}
+                        {product.activeIngredient && isFitosanitaryProduct(product.category) && (
+                          <div className="product-active-ingredient">
+                            <span className="active-ingredient-label">P.A.:</span>
+                            <span className="active-ingredient-value" title={product.activeIngredient}>
+                              {product.activeIngredient}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* 🆕 FABRICANTE si existe */}
+                        {product.manufacturer && (
+                          <div className="product-manufacturer">
+                            <span className="manufacturer-icon">🏭</span>
+                            <span className="manufacturer-text" title={product.manufacturer}>
+                              {product.manufacturer}
+                            </span>
+                          </div>
                         )}
                       </div>
-                    </td>
-                    <td>
-                      <span className="category-badge">
-                        {filterOptions.categories.find(cat => cat.value === product.category)?.label || product.category}
-                      </span>
+                      
+                      {/* Badge de categoría */}
+                      <div className={`category-badge ${product.category}`}>
+                        {getCategoryText(product.category)}
+                      </div>
                     </td>
                     <td>
                       {renderStockBadge(product)}

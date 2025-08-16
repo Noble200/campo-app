@@ -1,4 +1,3 @@
-// src/components/panels/Products/ProductDialog.js - Con debugging para el stock
 import React, { useState, useEffect } from 'react';
 
 const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) => {
@@ -7,10 +6,12 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
     name: '',
     code: '',
     category: 'insumo',
+    manufacturer: '',
+    activeIngredient: '',
     storageType: 'bolsas',
     unit: 'kg',
-    stock: '', // IMPORTANTE: inicializar como string vacío
-    minStock: '', // IMPORTANTE: inicializar como string vacío
+    stock: '', 
+    minStock: '', 
     lotNumber: '',
     storageConditions: '',
     dimensions: '',
@@ -44,6 +45,8 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
         name: product.name || '',
         code: product.code || '',
         category: product.category || 'insumo',
+        manufacturer: product.manufacturer || '',
+        activeIngredient: product.activeIngredient || '',
         storageType: product.storageType || 'bolsas',
         unit: product.unit || 'kg',
         stock: product.stock !== undefined ? String(product.stock) : '', // Convertir a string
@@ -102,6 +105,18 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
       setAvailableLots([]);
     }
   };
+
+  const isFitosanitaryProduct = useCallback((category) => {
+    const fitosanitaryCategories = [
+      'insecticida',
+      'fungicida', 
+      'herbicida',
+      'curasemilla_quimico',
+      'curasemilla_biologico',
+      'pesticida'
+    ];
+    return fitosanitaryCategories.includes(category);
+  }, []);
 
   // Manejar cambios en el formulario
   const handleChange = (e) => {
@@ -288,6 +303,22 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
                     disabled={submitting}
                   />
                 </div>
+
+                {/* 🆕 FABRICANTE */}
+                <div className="form-group">
+                  <label htmlFor="manufacturer" className="form-label">Fabricante</label>
+                  <input
+                    type="text"
+                    id="manufacturer"
+                    name="manufacturer"
+                    className="form-control"
+                    value={formData.manufacturer}
+                    onChange={handleChange}
+                    placeholder="Nombre del fabricante"
+                    disabled={submitting}
+                    maxLength={100}
+                  />
+                </div>
                 
                 {/* Categoría */}
                 <div className="form-group">
@@ -305,13 +336,49 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
                     <option value="herramienta">Herramienta</option>
                     <option value="semilla">Semilla</option>
                     <option value="fertilizante">Fertilizante</option>
+                    <option value="fertilizante_foliar">Fertilizante Foliar</option>
+                    <option value="curasemilla_quimico">Curasemilla Químico</option>
+                    <option value="curasemilla_biologico">Curasemilla Biológico</option>
+                    <option value="inoculante">Inoculante</option>
+                    <option value="insecticida">Insecticida</option>
+                    <option value="fungicida">Fungicida</option>
+                    <option value="herbicida">Herbicida</option>
+                    <option value="lubricante">Lubricante</option>
+                    <option value="combustible">Combustible</option>
+                    <option value="coadyuvante">Coadyuvante</option>
+                    <option value="bioestimulante">Bioestimulante</option>
                     <option value="pesticida">Pesticida</option>
                     <option value="maquinaria">Maquinaria</option>
-                    <option value="combustible">Combustible</option>
                     <option value="otro">Otro</option>
                   </select>
                   {errors.category && <div className="invalid-feedback">{errors.category}</div>}
                 </div>
+                
+                {/* 🆕 PRINCIPIO ACTIVO - Solo para categorías fitosanitarias */}
+                {(formData.category === 'insecticida' || 
+                  formData.category === 'fungicida' || 
+                  formData.category === 'herbicida' ||
+                  formData.category === 'curasemilla_quimico' ||
+                  formData.category === 'curasemilla_biologico' ||
+                  formData.category === 'pesticida') && (
+                  <div className="form-group">
+                    <label htmlFor="activeIngredient" className="form-label">Principio Activo</label>
+                    <input
+                      type="text"
+                      id="activeIngredient"
+                      name="activeIngredient"
+                      className="form-control"
+                      value={formData.activeIngredient}
+                      onChange={handleChange}
+                      placeholder="Principio activo del producto"
+                      disabled={submitting}
+                      style={{ backgroundColor: 'rgba(76, 175, 80, 0.05)', borderColor: '#4CAF50' }}
+                    />
+                    <small className="form-text text-muted">
+                      Este campo es visible para productos fitosanitarios
+                    </small>
+                  </div>
+                )}
                 
                 {/* Forma de almacenamiento */}
                 <div className="form-group">
@@ -326,10 +393,17 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
                     disabled={submitting}
                   >
                     <option value="bolsas">Bolsas</option>
+                    <option value="bidones">Bidones</option>
+                    <option value="botellas">Botellas</option>
+                    <option value="big-bag">Big-bag</option>
+                    <option value="tambores">Tambores</option>
+                    <option value="bag_in_box">Bag in box</option>
+                    <option value="dosis">Dosis</option>
+                    <option value="packs">Packs</option>
+                    <option value="sobres">Sobres</option>
                     <option value="suelto">Suelto</option>
                     <option value="unidad">Por unidad</option>
                     <option value="sacos">Sacos</option>
-                    <option value="tambores">Tambores</option>
                     <option value="contenedores">Contenedores</option>
                     <option value="cajas">Cajas</option>
                   </select>
