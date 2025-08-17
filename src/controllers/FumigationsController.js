@@ -486,6 +486,7 @@ const useFumigationsController = () => {
       { value: 'soja', label: 'Soja' },
       { value: 'trigo', label: 'Trigo' },
       { value: 'girasol', label: 'Girasol' },
+      { value: 'barbecho', label: 'Barbecho' },
       { value: 'alfalfa', label: 'Alfalfa' },
       { value: 'otro', label: 'Otro' }
     ],

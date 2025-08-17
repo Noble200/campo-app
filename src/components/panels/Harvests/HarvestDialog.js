@@ -496,6 +496,7 @@ const HarvestDialog = ({
                     <option value="soja">Soja</option>
                     <option value="trigo">Trigo</option>
                     <option value="girasol">Girasol</option>
+                    <option value="barbecho">Barbecho</option>
                     <option value="alfalfa">Alfalfa</option>
                     <option value="otro">Otro</option>
                   </select>

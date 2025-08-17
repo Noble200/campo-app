@@ -68,7 +68,7 @@ const FumigationDialog = ({
     if (fromUnit === 'L/ha') return null;
     
     const converted = convertToLiters(value, fromUnit);
-    return `≈ ${converted.toFixed(3)} L/ha`;
+    return `≈ ${converted.toFixed(2)} L/ha`;
   };
 
   // Cargar datos de la fumigación si estamos editando
@@ -133,7 +133,12 @@ const FumigationDialog = ({
         'fungicida',
         'curasemilla_quimico',
         'curasemilla_biologico',
-        'pesticida'
+        'pesticida',
+        'fertilizante',
+        'fertilizante_foliar',
+        'inoculante',
+        'coadyuvante',
+        'bioestimulante'
       ];
       
       // Categorías de nutrición y estimulación
@@ -145,9 +150,16 @@ const FumigationDialog = ({
         'bioestimulante'
       ];
       
-      // Incluir todas las categorías que se pueden aplicar en fumigaciones
+      // Categorías adicionales que pueden aplicarse en fumigaciones
+      const additionalCategories = [
+        'insumo',  // ← FALTABA ESTA!
+        'otro'     // ← FALTABA ESTA!
+      ];
+      
+      // ✅ INCLUIR TODAS las categorías aplicables
       return fitosanitaryCategories.includes(product.category) || 
-            nutritionCategories.includes(product.category);
+            nutritionCategories.includes(product.category) ||
+            additionalCategories.includes(product.category);
     });
     
     setSelectableProducts(validProducts);
@@ -267,16 +279,16 @@ const FumigationDialog = ({
     
     // MEJORADO: Calcular cantidad total con conversión a litros
     const doseInLiters = convertToLiters(Number(dosePerHa), doseUnit);
-    const totalQuantity = doseInLiters * Number(formData.totalSurface || 0);
+    const totalQuantity = parseFloat((doseInLiters * Number(formData.totalSurface || 0)).toFixed(2));
     
     // MEJORADO: Verificar stock considerando la unidad del producto
     let stockToCheck = totalQuantity;
     
     // Si el producto se almacena en cc/ml y calculamos en litros, convertir
     if (product.unit === 'ml' || product.unit === 'cc') {
-      stockToCheck = totalQuantity * 1000; // L a ml
+      stockToCheck = parseFloat((totalQuantity * 1000).toFixed(2));
     } else if (product.unit === 'L') {
-      stockToCheck = totalQuantity; // Ya en litros
+      stockToCheck = parseFloat(totalQuantity.toFixed(2));
     }
     
     if (stockToCheck > product.stock) {
@@ -294,11 +306,11 @@ const FumigationDialog = ({
       productId: selectedProductId,
       dosePerHa: Number(dosePerHa),
       doseUnit: doseUnit,
-      doseInLiters: doseInLiters, // NUEVO: Almacenar conversión
-      totalQuantity: stockToCheck, // Cantidad en la unidad del producto
-      totalQuantityLiters: totalQuantity, // NUEVO: Cantidad en litros para cálculos
+      doseInLiters: parseFloat(doseInLiters.toFixed(2)),
+      totalQuantity: parseFloat(stockToCheck.toFixed(2)), 
+      totalQuantityLiters: parseFloat(totalQuantity.toFixed(2)),
       unit: product.unit,
-      conversion: showConversion(Number(dosePerHa), doseUnit) // NUEVO: Mostrar conversión
+      conversion: showConversion(Number(dosePerHa), doseUnit)
     };
     
     if (existingIndex >= 0) {
@@ -643,7 +655,7 @@ const FumigationDialog = ({
                       </div>
                       
                       <div className="product-quantity">
-                        <span>Total: <strong>{selectedProduct.totalQuantity.toFixed(2)} {selectedProduct.unit}</strong></span>
+                        <span>Total: <strong>{parseFloat(selectedProduct.totalQuantity || 0).toFixed(2)} {selectedProduct.unit}</strong></span>
                         <button
                           type="button"
                           className="btn-icon btn-icon-sm btn-icon-danger"
@@ -892,7 +904,7 @@ const FumigationDialog = ({
                       <div className="total-calculation">
                         <div className="dose-calculation">
                           <span>Dosis total: <strong>
-                            {(Number(dosePerHa) * Number(formData.totalSurface)).toFixed(2)} {doseUnit.split('/')[0]}
+                            {parseFloat((Number(dosePerHa) * Number(formData.totalSurface)).toFixed(2))} {doseUnit.split('/')[0]}
                           </strong></span>
                           {showConversion(Number(dosePerHa), doseUnit) && (
                             <span className="conversion-display">

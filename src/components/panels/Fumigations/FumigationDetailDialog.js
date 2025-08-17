@@ -324,7 +324,7 @@ const FumigationDetailDialog = ({
                               </div>
                             </td>
                             <td>{product.dosePerHa} {product.doseUnit}</td>
-                            <td><strong>{product.totalQuantity.toFixed(2)} {product.unit}</strong></td>
+                            <td><strong>{parseFloat(product.totalQuantity || 0).toFixed(2)} {product.unit}</strong></td>
                             <td>
                               {product.conversion && (
                                 <span className="conversion-display">{product.conversion}</span>
