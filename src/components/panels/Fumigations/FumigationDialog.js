@@ -125,13 +125,30 @@ const FumigationDialog = ({
 
   // Cargar productos aplicables (pesticidas, herbicidas, fertilizantes)
   useEffect(() => {
-    const validProducts = products.filter(product => 
-      product.category === 'pesticida' || 
-      product.category === 'fertilizante' ||
-      product.category === 'herbicida' ||
-      product.category === 'fungicida' ||
-      product.category === 'insecticida'
-    );
+    const validProducts = products.filter(product => {
+      // Categorías fitosanitarias principales
+      const fitosanitaryCategories = [
+        'herbicida',
+        'insecticida', 
+        'fungicida',
+        'curasemilla_quimico',
+        'curasemilla_biologico',
+        'pesticida'
+      ];
+      
+      // Categorías de nutrición y estimulación
+      const nutritionCategories = [
+        'fertilizante',
+        'fertilizante_foliar',
+        'inoculante',
+        'coadyuvante',
+        'bioestimulante'
+      ];
+      
+      // Incluir todas las categorías que se pueden aplicar en fumigaciones
+      return fitosanitaryCategories.includes(product.category) || 
+            nutritionCategories.includes(product.category);
+    });
     
     setSelectableProducts(validProducts);
   }, [products]);

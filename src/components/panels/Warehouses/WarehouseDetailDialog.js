@@ -23,6 +23,32 @@ const WarehouseDetailDialog = ({ warehouse, fields, onClose, onEditWarehouse, on
     return lot ? lot.name : 'Lote desconocido';
   };
 
+  // NUEVA: Función para mostrar la asignación completa
+  const getAssignmentDisplay = () => {
+    if (warehouse.assignmentType === 'supplier' || warehouse.supplierName) {
+      return {
+        type: 'supplier',
+        title: 'Proveedor asignado',
+        primary: warehouse.supplierName || 'Proveedor sin nombre',
+        secondary: warehouse.supplierContact || null
+      };
+    } else if (warehouse.fieldId) {
+      return {
+        type: 'field',
+        title: 'Campo/Lote asignado',
+        primary: getFieldName(),
+        secondary: getLotName()
+      };
+    } else {
+      return {
+        type: 'none',
+        title: 'Asignación',
+        primary: 'Sin asignar',
+        secondary: null
+      };
+    }
+  };
+
   // Función para obtener el texto del tipo de almacén
   const getWarehouseTypeText = (type) => {
     const types = {
@@ -175,29 +201,78 @@ const WarehouseDetailDialog = ({ warehouse, fields, onClose, onEditWarehouse, on
             {/* Asignación */}
             <div className="detail-section">
               <h3 className="section-title">
-                <i className="fas fa-map-marker-alt"></i> Asignación
+                <i className="fas fa-map-marker-alt"></i> {getAssignmentDisplay().title}
               </h3>
               
-              <div className="detail-grid">
-                <div className="detail-item">
-                  <span className="detail-label">Campo</span>
-                  <span className="detail-value">{getFieldName()}</span>
-                </div>
-                
-                <div className="detail-item">
-                  <span className="detail-label">Nivel de asignación</span>
-                  <span className="detail-value">
-                    {warehouse.isFieldLevel ? 'Campo completo' : 'Lote específico'}
-                  </span>
-                </div>
-                
-                {!warehouse.isFieldLevel && (
+              {getAssignmentDisplay().type === 'field' && (
+                <div className="detail-grid">
                   <div className="detail-item">
-                    <span className="detail-label">Lote</span>
-                    <span className="detail-value">{getLotName()}</span>
+                    <span className="detail-label">Campo</span>
+                    <span className="detail-value">{getFieldName()}</span>
                   </div>
-                )}
-              </div>
+                  
+                  <div className="detail-item">
+                    <span className="detail-label">Nivel de asignación</span>
+                    <span className="detail-value">
+                      {warehouse.isFieldLevel ? 'Campo completo' : `Lote: ${getLotName()}`}
+                    </span>
+                  </div>
+                </div>
+              )}
+              
+              {getAssignmentDisplay().type === 'supplier' && (
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <span className="detail-label">Nombre del proveedor</span>
+                    <span className="detail-value">{warehouse.supplierName || 'Sin nombre'}</span>
+                  </div>
+                  
+                  {warehouse.supplierContact && (
+                    <div className="detail-item">
+                      <span className="detail-label">Persona de contacto</span>
+                      <span className="detail-value">{warehouse.supplierContact}</span>
+                    </div>
+                  )}
+                  
+                  {warehouse.supplierPhone && (
+                    <div className="detail-item">
+                      <span className="detail-label">Teléfono</span>
+                      <span className="detail-value">
+                        <a href={`tel:${warehouse.supplierPhone}`} className="contact-link">
+                          <i className="fas fa-phone"></i> {warehouse.supplierPhone}
+                        </a>
+                      </span>
+                    </div>
+                  )}
+                  
+                  {warehouse.supplierEmail && (
+                    <div className="detail-item">
+                      <span className="detail-label">Email</span>
+                      <span className="detail-value">
+                        <a href={`mailto:${warehouse.supplierEmail}`} className="contact-link">
+                          <i className="fas fa-envelope"></i> {warehouse.supplierEmail}
+                        </a>
+                      </span>
+                    </div>
+                  )}
+                  
+                  {warehouse.supplierAddress && (
+                    <div className="detail-item">
+                      <span className="detail-label">Dirección</span>
+                      <span className="detail-value">{warehouse.supplierAddress}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {getAssignmentDisplay().type === 'none' && (
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <span className="detail-label">Estado</span>
+                    <span className="detail-value">Este almacén no tiene asignación de campo/lote ni proveedor</span>
+                  </div>
+                </div>
+              )}
             </div>
             
             {/* Capacidad y condiciones */}

@@ -27,6 +27,7 @@ const useWarehousesController = () => {
     status: 'all',
     type: 'all',
     fieldId: 'all',
+    assignmentType: 'all', 
     searchTerm: ''
   });
   const [loading, setLoading] = useState(true);
@@ -39,6 +40,13 @@ const useWarehousesController = () => {
       // Añadir documento a la colección 'warehouses'
       const warehouseRef = await addDoc(collection(db, 'warehouses'), {
         ...warehouseData,
+        // Asegurar que los campos del proveedor se guarden correctamente
+        assignmentType: warehouseData.assignmentType || 'field',
+        supplierName: warehouseData.supplierName || '',
+        supplierContact: warehouseData.supplierContact || '',
+        supplierPhone: warehouseData.supplierPhone || '',
+        supplierEmail: warehouseData.supplierEmail || '',
+        supplierAddress: warehouseData.supplierAddress || '',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
@@ -62,6 +70,13 @@ const useWarehousesController = () => {
         supervisor: warehouseData.supervisor,
         status: warehouseData.status || 'active',
         isFieldLevel: warehouseData.isFieldLevel,
+        // Información del proveedor
+        assignmentType: warehouseData.assignmentType,
+        supplierName: warehouseData.supplierName,
+        supplierContact: warehouseData.supplierContact,
+        supplierPhone: warehouseData.supplierPhone,
+        supplierEmail: warehouseData.supplierEmail,
+        supplierAddress: warehouseData.supplierAddress,
         createdBy: currentUser?.displayName || currentUser?.email || 'Usuario desconocido'
       });
       
@@ -85,6 +100,13 @@ const useWarehousesController = () => {
       // Actualizar el documento en la colección 'warehouses'
       await updateDoc(doc(db, 'warehouses', warehouseId), {
         ...warehouseData,
+        // Asegurar que los campos del proveedor se actualicen correctamente
+        assignmentType: warehouseData.assignmentType || 'field',
+        supplierName: warehouseData.supplierName || '',
+        supplierContact: warehouseData.supplierContact || '',
+        supplierPhone: warehouseData.supplierPhone || '',
+        supplierEmail: warehouseData.supplierEmail || '',
+        supplierAddress: warehouseData.supplierAddress || '',
         updatedAt: serverTimestamp()
       });
       
@@ -148,7 +170,14 @@ const useWarehousesController = () => {
       temperature: 'Temperatura',
       humidity: 'Humedad',
       supervisor: 'Responsable',
-      isFieldLevel: 'Nivel de asignación'
+      isFieldLevel: 'Nivel de asignación',
+      // NUEVOS campos del proveedor
+      assignmentType: 'Tipo de asignación',
+      supplierName: 'Nombre del proveedor',
+      supplierContact: 'Contacto del proveedor',
+      supplierPhone: 'Teléfono del proveedor',
+      supplierEmail: 'Email del proveedor',
+      supplierAddress: 'Dirección del proveedor'
     };
     
     for (const [field, label] of Object.entries(fieldsToMonitor)) {
@@ -358,6 +387,23 @@ const useWarehousesController = () => {
       // Filtro por campo
       if (filters.fieldId !== 'all' && warehouse.fieldId !== filters.fieldId) {
         return false;
+      }
+
+      // NUEVO: Filtro por tipo de asignación
+      if (filters.assignmentType !== 'all') {
+        if (filters.assignmentType === 'supplier' && 
+            warehouse.assignmentType !== 'supplier' && 
+            !warehouse.supplierName) {
+          return false;
+        }
+        if (filters.assignmentType === 'field' && 
+            warehouse.assignmentType === 'supplier') {
+          return false;
+        }
+        if (filters.assignmentType === 'none' && 
+            (warehouse.fieldId || warehouse.supplierName)) {
+          return false;
+        }
       }
       
       // Búsqueda por texto

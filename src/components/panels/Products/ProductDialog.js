@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) => {
   // Estado inicial para el formulario
+  
   const [formData, setFormData] = useState({
     name: '',
     code: '',
@@ -39,8 +40,6 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
   // Cargar datos del producto si estamos editando
   useEffect(() => {
     if (product && !isNew) {
-      console.log('Cargando producto para editar:', product); // Debug
-      
       setFormData({
         name: product.name || '',
         code: product.code || '',
@@ -49,14 +48,14 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
         activeIngredient: product.activeIngredient || '',
         storageType: product.storageType || 'bolsas',
         unit: product.unit || 'kg',
-        stock: product.stock !== undefined ? String(product.stock) : '', // Convertir a string
-        minStock: product.minStock !== undefined ? String(product.minStock) : '', // Convertir a string
+        stock: product.stock !== null && product.stock !== undefined ? String(product.stock) : '',
+        minStock: product.minStock !== null && product.minStock !== undefined ? String(product.minStock) : '',
         lotNumber: product.lotNumber || '',
         storageConditions: product.storageConditions || '',
         dimensions: product.dimensions || '',
         expiryDate: formatDateForInput(product.expiryDate),
         supplierCode: product.supplierCode || '',
-        cost: product.cost !== undefined ? String(product.cost) : '', // Convertir a string
+        cost: product.cost !== null && product.cost !== undefined ? String(product.cost) : '',
         supplierName: product.supplierName || '',
         supplierContact: product.supplierContact || '',
         tags: product.tags || [],
@@ -67,6 +66,7 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
         storageLevel: product.storageLevel || 'field'
       });
       
+      
       // Cargar almacenes y lotes según el campo seleccionado
       if (product.fieldId) {
         updateWarehouses(product.fieldId);
@@ -76,13 +76,41 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
 
   // Formatear fecha para input de tipo date
   const formatDateForInput = (date) => {
-    if (!date) return '';
+  
+    if (!date || date === null || date === 'null' || date === '' || date === undefined) {
+      return '';
+    }
     
-    const d = date.seconds
-      ? new Date(date.seconds * 1000)
-      : new Date(date);
-    
-    return d.toISOString().split('T')[0];
+    try {
+      let d;
+      
+      // Si es un timestamp de Firebase
+      if (date && typeof date === 'object' && date.seconds) {
+        d = new Date(date.seconds * 1000);
+      }
+      // Si es una fecha válida
+      else if (date instanceof Date) {
+        d = date;
+      }
+      // Si es un string de fecha válido
+      else if (typeof date === 'string' && date.trim() !== '') {
+        d = new Date(date);
+      }
+      // Cualquier otro caso
+      else {
+        return '';
+      }
+      
+      // Verificar que la fecha sea válida
+      if (isNaN(d.getTime())) {
+        return '';
+      }
+      
+      return d.toISOString().split('T')[0];
+    } catch (error) {
+      console.warn('Error al formatear fecha:', error);
+      return '';
+    }
   };
 
   // Actualizar almacenes disponibles según el campo
@@ -233,8 +261,6 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
         cost: formData.cost !== '' ? Number(formData.cost) : null,
       };
       
-      console.log('handleSubmit - Datos a enviar:', productData); // Debug
-      console.log('handleSubmit - Stock convertido:', productData.stock, typeof productData.stock); // Debug
       
       // Convertir fecha de vencimiento
       if (productData.expiryDate) {
@@ -439,7 +465,7 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
                     id="lotNumber"
                     name="lotNumber"
                     className="form-control"
-                    value={formData.lotNumber}
+                    value={formData.lotNumber || ''}
                     onChange={handleChange}
                     placeholder="Número de lote del producto"
                     disabled={submitting}
@@ -461,7 +487,7 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
                     id="stock"
                     name="stock"
                     className={`form-control ${errors.stock ? 'is-invalid' : ''}`}
-                    value={formData.stock}
+                    value={formData.stock || ''} 
                     onChange={handleChange}
                     placeholder="Cantidad actual en stock"
                     min="0"
@@ -479,7 +505,7 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
                     id="minStock"
                     name="minStock"
                     className={`form-control ${errors.minStock ? 'is-invalid' : ''}`}
-                    value={formData.minStock}
+                    value={formData.minStock || ''}
                     onChange={handleChange}
                     placeholder="Cantidad mínima para alerta"
                     min="0"
@@ -497,7 +523,7 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
                     id="expiryDate"
                     name="expiryDate"
                     className="form-control"
-                    value={formData.expiryDate}
+                    value={formData.expiryDate || ''}
                     onChange={handleChange}
                     disabled={submitting}
                   />
@@ -648,7 +674,7 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
                     id="storageConditions"
                     name="storageConditions"
                     className="form-control"
-                    value={formData.storageConditions}
+                    value={formData.storageConditions || ''} 
                     onChange={handleChange}
                     placeholder="Ej: Lugar seco y fresco"
                     disabled={submitting}
@@ -663,7 +689,7 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
                     id="dimensions"
                     name="dimensions"
                     className="form-control"
-                    value={formData.dimensions}
+                    value={formData.dimensions || ''}
                     onChange={handleChange}
                     placeholder="Ej: 50x30x20 cm"
                     disabled={submitting}
@@ -678,7 +704,7 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
                     id="supplierCode"
                     name="supplierCode"
                     className="form-control"
-                    value={formData.supplierCode}
+                    value={formData.supplierCode || ''} 
                     onChange={handleChange}
                     placeholder="Código del proveedor"
                     disabled={submitting}
@@ -693,7 +719,7 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
                     id="cost"
                     name="cost"
                     className={`form-control ${errors.cost ? 'is-invalid' : ''}`}
-                    value={formData.cost}
+                    value={formData.cost || ''}
                     onChange={handleChange}
                     placeholder="Precio de compra por unidad"
                     min="0"
@@ -713,7 +739,7 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
                     id="supplierName"
                     name="supplierName"
                     className="form-control"
-                    value={formData.supplierName}
+                    value={formData.supplierName || ''}
                     onChange={handleChange}
                     placeholder="Nombre del proveedor"
                     disabled={submitting}
@@ -727,7 +753,7 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
                     id="supplierContact"
                     name="supplierContact"
                     className="form-control"
-                    value={formData.supplierContact}
+                    value={formData.supplierContact || ''}
                     onChange={handleChange}
                     placeholder="Teléfono o email del proveedor"
                     disabled={submitting}
@@ -788,7 +814,7 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
                   id="notes"
                   name="notes"
                   className="form-control"
-                  value={formData.notes}
+                  value={formData.notes || ''}
                   onChange={handleChange}
                   placeholder="Notas adicionales sobre el producto"
                   rows={4}

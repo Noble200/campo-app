@@ -1,8 +1,8 @@
-// src/components/panels/Products/ProductDetailDialog.js - Vista detallada de un producto
 import React from 'react';
 
 const ProductDetailDialog = ({ product, fields, warehouses, onClose, onEditProduct, onDeleteProduct }) => {
   // Función para formatear fecha
+
   const formatDate = (date) => {
     if (!date) return 'Sin vencimiento';
     
@@ -366,13 +366,6 @@ const ProductDetailDialog = ({ product, fields, warehouses, onClose, onEditProdu
                   )}
                   
                   {/* Si no hay proveedor pero hay fabricante, mostrarlo aquí también */}
-                  {!product.supplierName && product.manufacturer && (
-                    <div className="detail-item">
-                      <span className="detail-label">Fabricante</span>
-                      <span className="detail-value">{product.manufacturer}</span>
-                    </div>
-                  )}
-                  
                   {product.supplierContact && (
                     <div className="detail-item">
                       <span className="detail-label">Contacto</span>

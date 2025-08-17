@@ -7,9 +7,16 @@ const WarehouseDialog = ({ warehouse, fields, isNew, onSave, onClose }) => {
     name: '',
     type: 'shed', // Tipo por defecto: galpón
     location: '',
+    assignmentType: 'field', // Nuevo: 'field' o 'supplier'
     fieldId: '',
     lotId: '',
     isFieldLevel: true, // Si es true, el almacén está asignado a nivel de campo
+    // Datos del proveedor
+    supplierName: '',
+    supplierContact: '',
+    supplierPhone: '',
+    supplierEmail: '',
+    supplierAddress: '',
     status: 'active',
     capacity: '',
     capacityUnit: 'ton',
@@ -33,9 +40,15 @@ const WarehouseDialog = ({ warehouse, fields, isNew, onSave, onClose }) => {
         name: warehouse.name || '',
         type: warehouse.type || 'shed',
         location: warehouse.location || '',
+        assignmentType: warehouse.assignmentType || (warehouse.fieldId ? 'field' : 'supplier'),
         fieldId: warehouse.fieldId || '',
         lotId: warehouse.lotId || '',
         isFieldLevel: warehouse.isFieldLevel !== undefined ? warehouse.isFieldLevel : true,
+        supplierName: warehouse.supplierName || '',
+        supplierContact: warehouse.supplierContact || '',
+        supplierPhone: warehouse.supplierPhone || '',
+        supplierEmail: warehouse.supplierEmail || '',
+        supplierAddress: warehouse.supplierAddress || '',
         status: warehouse.status || 'active',
         capacity: warehouse.capacity || '',
         capacityUnit: warehouse.capacityUnit || 'ton',
@@ -67,6 +80,10 @@ const WarehouseDialog = ({ warehouse, fields, isNew, onSave, onClose }) => {
     }
     
     setFormData(prev => ({ ...prev, [name]: value }));
+    // Si cambia el tipo de asignación, limpiar campos relacionados
+    if (name === 'assignmentType') {
+      handleAssignmentTypeChange(value);
+    }
     
     // Si cambia el campo, actualizar lotes disponibles
     if (name === 'fieldId') {
@@ -96,6 +113,32 @@ const WarehouseDialog = ({ warehouse, fields, isNew, onSave, onClose }) => {
     }
   };
 
+  // Manejar cambio de tipo de asignación
+  const handleAssignmentTypeChange = (assignmentType) => {
+    if (assignmentType === 'field') {
+      // Limpiar datos del proveedor
+      setFormData(prev => ({
+        ...prev,
+        assignmentType,
+        supplierName: '',
+        supplierContact: '',
+        supplierPhone: '',
+        supplierEmail: '',
+        supplierAddress: ''
+      }));
+    } else if (assignmentType === 'supplier') {
+      // Limpiar datos del campo
+      setFormData(prev => ({
+        ...prev,
+        assignmentType,
+        fieldId: '',
+        lotId: '',
+        isFieldLevel: true
+      }));
+      setAvailableLots([]);
+    }
+  };
+
   // Manejar cambio en checkbox de nivel de campo
   const handleFieldLevelChange = (e) => {
     setFormData(prev => ({
@@ -116,6 +159,12 @@ const WarehouseDialog = ({ warehouse, fields, isNew, onSave, onClose }) => {
     
     if (!formData.type) {
       newErrors.type = 'El tipo de almacén es obligatorio';
+    }
+
+    if (formData.assignmentType === 'supplier') {
+      if (!formData.supplierName.trim()) {
+        newErrors.supplierName = 'El nombre del proveedor es obligatorio';
+      }
     }
     
     if (formData.capacity && isNaN(Number(formData.capacity))) {
@@ -268,61 +317,78 @@ const WarehouseDialog = ({ warehouse, fields, isNew, onSave, onClose }) => {
               </div>
             </div>
             
-            {/* Asignación a campo/lote */}
+            {/* Asignación de campo/lote o proveedor */}
             <div className="form-section">
-              <h3 className="section-title">Asignación a campo/lote</h3>
+              <h3 className="section-title">Asignación de campo/lote o proveedor</h3>
               
-              {/* Campo */}
+              {/* Tipo de asignación */}
               <div className="form-group">
-                <label htmlFor="fieldId" className="form-label">Campo</label>
+                <label htmlFor="assignmentType" className="form-label">Tipo de asignación</label>
                 <select
-                  id="fieldId"
-                  name="fieldId"
+                  id="assignmentType"
+                  name="assignmentType"
                   className="form-control"
-                  value={formData.fieldId}
+                  value={formData.assignmentType}
                   onChange={handleChange}
-                  style={{ height: 'auto', minHeight: '40px', paddingTop: '8px', paddingBottom: '8px' }}
-                  disabled={submitting}
                 >
-                  <option value="">No asignado a un campo</option>
-                  {fields.map((field) => (
-                    <option key={field.id} value={field.id}>
-                      {field.name}
-                    </option>
-                  ))}
+                  <option value="field">Campo/Lote</option>
+                  <option value="supplier">Proveedor</option>
                 </select>
               </div>
-              
-              {formData.fieldId && (
-                <div className="field-level-assignment">
-                  <div className="form-check">
-                    <input
-                      type="checkbox"
-                      className="form-check-input"
-                      id="isFieldLevel"
-                      checked={formData.isFieldLevel}
-                      onChange={handleFieldLevelChange}
-                      disabled={submitting}
-                    />
-                    <label className="form-check-label" htmlFor="isFieldLevel">
-                      Asignar a nivel de campo completo
-                    </label>
+
+              {/* Sección de campo/lote */}
+              {formData.assignmentType === 'field' && (
+                <div className="form-grid">
+                  {/* Campo */}
+                  <div className="form-group">
+                    <label htmlFor="fieldId" className="form-label">Campo</label>
+                    <select
+                      id="fieldId"
+                      name="fieldId"
+                      className="form-control"
+                      value={formData.fieldId}
+                      onChange={handleChange}
+                    >
+                      <option value="">Seleccionar campo</option>
+                      {fields.map(field => (
+                        <option key={field.id} value={field.id}>
+                          {field.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  
+
+                  {/* Checkbox de nivel de campo */}
+                  <div className="form-group">
+                    <div className="checkbox-group">
+                      <input
+                        type="checkbox"
+                        id="isFieldLevel"
+                        name="isFieldLevel"
+                        checked={formData.isFieldLevel}
+                        onChange={handleFieldLevelChange}
+                        disabled={!formData.fieldId}
+                      />
+                      <label htmlFor="isFieldLevel" className="checkbox-label">
+                        Asignar a nivel de campo completo
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Lote (solo si no es nivel de campo) */}
                   {!formData.isFieldLevel && (
                     <div className="form-group">
-                      <label htmlFor="lotId" className="form-label">Lote específico</label>
+                      <label htmlFor="lotId" className="form-label">Lote</label>
                       <select
                         id="lotId"
                         name="lotId"
                         className="form-control"
                         value={formData.lotId}
                         onChange={handleChange}
-                        style={{ height: 'auto', minHeight: '40px', paddingTop: '8px', paddingBottom: '8px' }}
-                        disabled={submitting}
+                        disabled={!formData.fieldId || formData.isFieldLevel}
                       >
                         <option value="">Seleccionar lote</option>
-                        {availableLots.map((lot) => (
+                        {availableLots.map(lot => (
                           <option key={lot.id} value={lot.id}>
                             {lot.name}
                           </option>
@@ -330,6 +396,83 @@ const WarehouseDialog = ({ warehouse, fields, isNew, onSave, onClose }) => {
                       </select>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Sección de proveedor */}
+              {formData.assignmentType === 'supplier' && (
+                <div className="form-grid">
+                  {/* Nombre del proveedor */}
+                  <div className="form-group">
+                    <label htmlFor="supplierName" className="form-label required">Nombre del proveedor</label>
+                    <input
+                      type="text"
+                      id="supplierName"
+                      name="supplierName"
+                      className={`form-control ${errors.supplierName ? 'error' : ''}`}
+                      value={formData.supplierName}
+                      onChange={handleChange}
+                      placeholder="Nombre o razón social"
+                      required={formData.assignmentType === 'supplier'}
+                    />
+                    {errors.supplierName && <span className="error-message">{errors.supplierName}</span>}
+                  </div>
+
+                  {/* Contacto */}
+                  <div className="form-group">
+                    <label htmlFor="supplierContact" className="form-label">Persona de contacto</label>
+                    <input
+                      type="text"
+                      id="supplierContact"
+                      name="supplierContact"
+                      className="form-control"
+                      value={formData.supplierContact}
+                      onChange={handleChange}
+                      placeholder="Nombre del contacto"
+                    />
+                  </div>
+
+                  {/* Teléfono */}
+                  <div className="form-group">
+                    <label htmlFor="supplierPhone" className="form-label">Teléfono</label>
+                    <input
+                      type="text"
+                      id="supplierPhone"
+                      name="supplierPhone"
+                      className="form-control"
+                      value={formData.supplierPhone}
+                      onChange={handleChange}
+                      placeholder="Número de teléfono"
+                    />
+                  </div>
+
+                  {/* Email */}
+                  <div className="form-group">
+                    <label htmlFor="supplierEmail" className="form-label">Email</label>
+                    <input
+                      type="email"
+                      id="supplierEmail"
+                      name="supplierEmail"
+                      className="form-control"
+                      value={formData.supplierEmail}
+                      onChange={handleChange}
+                      placeholder="Correo electrónico"
+                    />
+                  </div>
+
+                  {/* Dirección */}
+                  <div className="form-group form-group-full">
+                    <label htmlFor="supplierAddress" className="form-label">Dirección</label>
+                    <textarea
+                      id="supplierAddress"
+                      name="supplierAddress"
+                      className="form-control"
+                      value={formData.supplierAddress}
+                      onChange={handleChange}
+                      placeholder="Dirección completa del proveedor"
+                      rows="2"
+                    />
+                  </div>
                 </div>
               )}
             </div>

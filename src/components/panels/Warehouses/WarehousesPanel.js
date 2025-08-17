@@ -44,6 +44,41 @@ const WarehousesPanel = ({
     return lot ? lot.name : 'Lote desconocido';
   };
 
+  // NUEVA: Función para mostrar la asignación (campo/lote o proveedor)
+  const getAssignmentDisplay = (warehouse) => {
+    if (warehouse.assignmentType === 'supplier' || warehouse.supplierName) {
+      return {
+        type: 'supplier',
+        primary: warehouse.supplierName || 'Proveedor sin nombre',
+        secondary: warehouse.supplierContact || 'Sin contacto'
+      };
+    } else if (warehouse.fieldId) {
+      return {
+        type: 'field',
+        primary: getFieldName(warehouse),
+        secondary: getLotName(warehouse)
+      };
+    } else {
+      return {
+        type: 'none',
+        primary: 'Sin asignar',
+        secondary: ''
+      };
+    }
+  };
+
+  // NUEVA: Función para renderizar el icono de asignación
+  const getAssignmentIcon = (assignmentType) => {
+    switch (assignmentType) {
+      case 'supplier':
+        return 'fas fa-truck';
+      case 'field':
+        return 'fas fa-seedling';
+      default:
+        return 'fas fa-question-circle';
+    }
+  };
+
   // Función para obtener el icono según el tipo de almacén
   const getWarehouseIcon = (type) => {
     switch (type) {
@@ -183,6 +218,21 @@ const WarehousesPanel = ({
               ))}
             </select>
           </div>
+          <div className="filter-item">
+            <label htmlFor="assignmentTypeFilter">Asignación:</label>
+            <select
+              id="assignmentTypeFilter"
+              className="form-control"
+              value={filterOptions.assignmentType || 'all'}
+              onChange={(e) => onFilterChange('assignmentType', e.target.value)}
+              style={{ height: 'auto', minHeight: '40px', paddingTop: '8px', paddingBottom: '8px' }}
+            >
+              <option value="all">Todas las asignaciones</option>
+              <option value="field">Campo/Lote</option>
+              <option value="supplier">Proveedor</option>
+              <option value="none">Sin asignar</option>
+            </select>
+          </div>
         </div>
         
         <div className="search-container">
@@ -231,15 +281,30 @@ const WarehousesPanel = ({
                     </span>
                   </div>
                   
-                  <div className="warehouse-detail">
-                    <span className="detail-label">Campo</span>
-                    <span className="detail-value">{getFieldName(warehouse)}</span>
-                  </div>
-                  
-                  <div className="warehouse-detail">
-                    <span className="detail-label">Lote</span>
-                    <span className="detail-value">{getLotName(warehouse)}</span>
-                  </div>
+                  {(() => {
+                    const assignment = getAssignmentDisplay(warehouse);
+                    return (
+                      <>
+                        <div className="warehouse-detail">
+                          <span className="detail-label">
+                            <i className={getAssignmentIcon(assignment.type)}></i>
+                            {assignment.type === 'supplier' ? 'Proveedor' : 
+                            assignment.type === 'field' ? 'Campo' : 'Asignación'}
+                          </span>
+                          <span className="detail-value">{assignment.primary}</span>
+                        </div>
+                        
+                        {assignment.secondary && (
+                          <div className="warehouse-detail">
+                            <span className="detail-label">
+                              {assignment.type === 'supplier' ? 'Contacto' : 'Lote'}
+                            </span>
+                            <span className="detail-value">{assignment.secondary}</span>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                   
                   <div className="warehouse-detail">
                     <span className="detail-label">Capacidad</span>
@@ -276,6 +341,24 @@ const WarehousesPanel = ({
                     </div>
                   )}
                 </div>
+
+                {/* Información adicional del proveedor si aplica */}
+                {getAssignmentDisplay(warehouse).type === 'supplier' && (
+                  <div className="supplier-info">
+                    {warehouse.supplierPhone && (
+                      <div className="supplier-detail">
+                        <i className="fas fa-phone"></i>
+                        <span>{warehouse.supplierPhone}</span>
+                      </div>
+                    )}
+                    {warehouse.supplierEmail && (
+                      <div className="supplier-detail">
+                        <i className="fas fa-envelope"></i>
+                        <span>{warehouse.supplierEmail}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
                 
                 <div className="warehouse-actions">
                   <button

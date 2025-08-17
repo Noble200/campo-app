@@ -482,3 +482,76 @@
     border-radius: var(--border-radius-md);
   }
 }
+
+/* Estilos para información del proveedor */
+.supplier-details {
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background-color: var(--background-secondary);
+  border-radius: var(--border-radius);
+  border-left: 3px solid var(--primary);
+}
+
+.supplier-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.supplier-item:last-child {
+  margin-bottom: 0;
+}
+
+.supplier-item i {
+  width: 16px;
+  color: var(--primary);
+}
+
+/* Estilos para el formulario de proveedor */
+.form-group-full {
+  grid-column: 1 / -1;
+}
+
+/* Mejora para los iconos de asignación */
+.assignment-header i.fa-truck {
+  color: var(--warning);
+}
+
+.assignment-header i.fa-seedling {
+  color: var(--success);
+}
+
+.assignment-header i.fa-question-circle {
+  color: var(--text-muted);
+}
+
+/* Estilos para enlaces de contacto en el detalle */
+.contact-link {
+  color: var(--primary);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  transition: color var(--transition-fast);
+}
+
+.contact-link:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+.contact-link i {
+  font-size: var(--font-size-sm);
+}
+
+/* Mejorar el espaciado en la vista de detalles */
+.detail-section {
+  margin-bottom: var(--spacing-xl);
+}
+
+.detail-section:last-child {
+  margin-bottom: 0;
+}

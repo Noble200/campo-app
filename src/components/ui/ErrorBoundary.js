@@ -1,3 +1,4 @@
+// src/components/ui/ErrorBoundary.js
 import React from 'react';
 
 class ErrorBoundary extends React.Component {
@@ -47,7 +48,10 @@ class ErrorBoundary extends React.Component {
             {this.state.error && this.state.error.toString()}
             <br/><br/>
             <strong>Component Stack:</strong><br/>
-            {this.state.errorInfo.componentStack}
+            {/* 🔧 LÍNEA CORREGIDA para evitar el error de componentStack null */}
+            {this.state.errorInfo && this.state.errorInfo.componentStack 
+              ? this.state.errorInfo.componentStack 
+              : 'No hay información del stack disponible'}
           </div>
 
           <div>
