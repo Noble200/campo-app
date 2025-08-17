@@ -9,6 +9,8 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
     category: 'insumo',
     manufacturer: '',
     activeIngredient: '',
+    unitSize: '',
+    unitSizeUnit: 'L',
     storageType: 'bolsas',
     unit: 'kg',
     stock: '', 
@@ -46,6 +48,9 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
         category: product.category || 'insumo',
         manufacturer: product.manufacturer || '',
         activeIngredient: product.activeIngredient || '',
+        unitSize: product.unitSize || '',
+        unitSizeUnit: product.unitSizeUnit || 'L',
+        storageType: product.storageType || 'bolsas',
         storageType: product.storageType || 'bolsas',
         unit: product.unit || 'kg',
         stock: product.stock !== null && product.stock !== undefined ? String(product.stock) : '',
@@ -72,7 +77,7 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
         updateWarehouses(product.fieldId);
       }
     }
-  }, [product, isNew]);
+  }, [product, isNew, fields, warehouses]);
 
   // Formatear fecha para input de tipo date
   const formatDateForInput = (date) => {
@@ -233,6 +238,11 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
     if (formData.minStock && (isNaN(Number(formData.minStock)) || Number(formData.minStock) < 0)) {
       newErrors.minStock = 'El stock mínimo debe ser un número positivo';
     }
+
+    // Validar tamaño de unidad si está presente
+    if (formData.unitSize && (isNaN(Number(formData.unitSize)) || Number(formData.unitSize) <= 0)) {
+      newErrors.unitSize = 'El tamaño debe ser un número positivo';
+    }
     
     // Validar que cost sea un número si no está vacío
     if (formData.cost && (isNaN(Number(formData.cost)) || Number(formData.cost) < 0)) {
@@ -380,31 +390,59 @@ const ProductDialog = ({ product, fields, warehouses, isNew, onSave, onClose }) 
                   {errors.category && <div className="invalid-feedback">{errors.category}</div>}
                 </div>
                 
-                {/* 🆕 PRINCIPIO ACTIVO - Solo para categorías fitosanitarias */}
-                {(formData.category === 'insecticida' || 
-                  formData.category === 'fungicida' || 
-                  formData.category === 'herbicida' ||
-                  formData.category === 'curasemilla_quimico' ||
-                  formData.category === 'curasemilla_biologico' ||
-                  formData.category === 'pesticida') && (
-                  <div className="form-group">
-                    <label htmlFor="activeIngredient" className="form-label">Principio Activo</label>
+                {/* 🆕 PRINCIPIO ACTIVO - Ahora siempre visible */}
+                <div className="form-group">
+                  <label htmlFor="activeIngredient" className="form-label">Principio Activo</label>
+                  <input
+                    type="text"
+                    id="activeIngredient"
+                    name="activeIngredient"
+                    className="form-control"
+                    value={formData.activeIngredient}
+                    onChange={handleChange}
+                    placeholder="Principio activo del producto (opcional)"
+                    disabled={submitting}
+                  />
+                  <small className="form-text text-muted">
+                    Campo opcional. Dejar vacío si no aplica.
+                  </small>
+                </div>
+
+                {/* 🆕 TAMAÑO DE LA UNIDAD */}
+                <div className="form-group">
+                  <label className="form-label">Tamaño de la unidad</label>
+                  <div style={{ display: 'flex', gap: '10px' }}>
                     <input
-                      type="text"
-                      id="activeIngredient"
-                      name="activeIngredient"
+                      type="number"
+                      name="unitSize"
                       className="form-control"
-                      value={formData.activeIngredient}
+                      value={formData.unitSize}
                       onChange={handleChange}
-                      placeholder="Principio activo del producto"
+                      placeholder="Ej: 5, 10, 25"
                       disabled={submitting}
-                      style={{ backgroundColor: 'rgba(76, 175, 80, 0.05)', borderColor: '#4CAF50' }}
+                      style={{ flex: '1' }}
+                      min="0"
+                      step="0.01"
                     />
-                    <small className="form-text text-muted">
-                      Este campo es visible para productos fitosanitarios
-                    </small>
+                    <select
+                      name="unitSizeUnit"
+                      className="form-control"
+                      value={formData.unitSizeUnit}
+                      onChange={handleChange}
+                      disabled={submitting}
+                      style={{ flex: '0 0 100px' }}
+                    >
+                      <option value="L">Litros</option>
+                      <option value="kg">Kg</option>
+                      <option value="g">Gramos</option>
+                      <option value="ml">ml</option>
+                      <option value="ton">Toneladas</option>
+                    </select>
                   </div>
-                )}
+                  <small className="form-text text-muted">
+                    Ej: 5 L para bidón de 5 litros, 25 kg para bolsa de 25 kg
+                  </small>
+                </div>
                 
                 {/* Forma de almacenamiento */}
                 <div className="form-group">

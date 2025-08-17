@@ -48,7 +48,7 @@ export function StockProvider({ children }) {
       let productsData = [];
       querySnapshot.forEach((doc) => {
         const productData = doc.data();
-        
+
         console.log('Producto cargado:', doc.id, productData); // Debug
         
         productsData.push({
@@ -56,10 +56,13 @@ export function StockProvider({ children }) {
           name: productData.name,
           code: productData.code,
           category: productData.category,
+          manufacturer: productData.manufacturer, 
+          activeIngredient: productData.activeIngredient,
+          unitSize: productData.unitSize,
+          unitSizeUnit: productData.unitSizeUnit,
           storageType: productData.storageType,
           unit: productData.unit,
-          stock: productData.stock || 0, // CORREGIDO: usar 'stock' en lugar de 'quantity'
-          minStock: productData.minStock || 0,
+          stock: productData.stock || 0, 
           lotNumber: productData.lotNumber,
           storageConditions: productData.storageConditions,
           dimensions: productData.dimensions,
@@ -141,6 +144,13 @@ export function StockProvider({ children }) {
           supervisor: warehouseData.supervisor || '',
           description: warehouseData.description || '',
           notes: warehouseData.notes || '',
+          // NUEVOS campos del proveedor
+          assignmentType: warehouseData.assignmentType || 'field',
+          supplierName: warehouseData.supplierName || '',
+          supplierContact: warehouseData.supplierContact || '',
+          supplierPhone: warehouseData.supplierPhone || '',
+          supplierEmail: warehouseData.supplierEmail || '',
+          supplierAddress: warehouseData.supplierAddress || '',
           createdAt: warehouseData.createdAt,
           updatedAt: warehouseData.updatedAt
         });
@@ -230,6 +240,9 @@ export function StockProvider({ children }) {
         category: productData.category,
         manufacturer: productData.manufacturer || null,
         activeIngredient: productData.activeIngredient || null,
+        unitSize: productData.unitSize ? Number(productData.unitSize) : null,
+        unitSizeUnit: productData.unitSizeUnit || null,
+        unit: productData.unit,
         storageType: productData.storageType,
         unit: productData.unit,
         stock: Number(productData.stock) || 0, // CORREGIDO: usar 'stock' y asegurar conversión
@@ -290,6 +303,9 @@ export function StockProvider({ children }) {
         category: productData.category,
         manufacturer: productData.manufacturer || null,
         activeIngredient: productData.activeIngredient || null,
+        unitSize: productData.unitSize ? Number(productData.unitSize) : null,
+        unitSizeUnit: productData.unitSizeUnit || null,
+        unit: productData.unit,
         storageType: productData.storageType,
         unit: productData.unit,
         stock: Number(productData.stock) || 0, // CORREGIDO: usar 'stock' y asegurar conversión

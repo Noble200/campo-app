@@ -926,3 +926,48 @@
   opacity: 0;
   transform: translateY(-10px);
 }
+
+
+/* Estilos para las nuevas columnas */
+.active-ingredient-cell {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-style: italic;
+  max-width: 120px;
+  word-wrap: break-word;
+}
+
+.unit-size-cell {
+  font-weight: var(--font-weight-medium);
+  color: var(--primary);
+  text-align: center;
+  min-width: 80px;
+}
+
+/* Ajustar anchos específicos para mejor visualización */
+.products-table th:nth-child(4), /* Principio Activo */
+.products-table td:nth-child(4) {
+  width: 120px;
+  min-width: 100px;
+}
+
+.products-table th:nth-child(5), /* Tamaño */
+.products-table td:nth-child(5) {
+  width: 90px;
+  min-width: 70px;
+  text-align: center;
+}
+
+/* Hacer que las columnas de texto sean más compactas */
+.products-table th:nth-child(1), /* Lote */
+.products-table td:nth-child(1) {
+  width: 80px;
+  min-width: 60px;
+}
+
+.products-table th:nth-child(7), /* Unidad */
+.products-table td:nth-child(7) {
+  width: 70px;
+  min-width: 50px;
+  text-align: center;
+}

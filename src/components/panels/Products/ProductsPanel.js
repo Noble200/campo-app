@@ -325,6 +325,8 @@ const ProductsPanel = ({
                 <th>Lote</th>
                 <th>Nombre</th>
                 <th>Categoría</th>
+                <th>Principio Activo</th>
+                <th>Tamaño</th>
                 <th>Stock</th>
                 <th>Unidad</th>
                 <th>Fecha de Venc.</th>
@@ -346,20 +348,15 @@ const ProductsPanel = ({
                       <div className="product-name-container">
                         {/* Nombre principal */}
                         <div className="product-name">{product.name}</div>
+
+                        {/* 🆕 NUEVA CELDA: PRINCIPIO ACTIVO */}
+                        <td className="active-ingredient-cell">
+                          {product.activeIngredient || '-'}
+                        </td>
                         
                         {/* Código si existe */}
                         {product.code && (
                           <div className="product-code">Código: {product.code}</div>
-                        )}
-                        
-                        {/* 🆕 PRINCIPIO ACTIVO - Solo para productos fitosanitarios */}
-                        {product.activeIngredient && isFitosanitaryProduct(product.category) && (
-                          <div className="product-active-ingredient">
-                            <span className="active-ingredient-label">P.A.:</span>
-                            <span className="active-ingredient-value" title={product.activeIngredient}>
-                              {product.activeIngredient}
-                            </span>
-                          </div>
                         )}
                         
                         {/* 🆕 FABRICANTE si existe */}
@@ -373,10 +370,24 @@ const ProductsPanel = ({
                         )}
                       </div>
                       
-                      {/* Badge de categoría */}
-                      <div className={`category-badge ${product.category}`}>
+                    </td>
+                    <td>
+                      <span className="category-badge">
                         {getCategoryText(product.category)}
-                      </div>
+                      </span>
+                    </td>
+
+                    {/* 🆕 NUEVA CELDA: PRINCIPIO ACTIVO */}
+                    <td className="active-ingredient-cell">
+                      {product.activeIngredient || '-'}
+                    </td>
+
+                    {/* 🆕 NUEVA CELDA: TAMAÑO */}
+                    <td className="unit-size-cell">
+                      {product.unitSize && product.unitSizeUnit 
+                        ? `${product.unitSize} ${product.unitSizeUnit}` 
+                        : '-'
+                      }
                     </td>
                     <td>
                       {renderStockBadge(product)}
