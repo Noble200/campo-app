@@ -25,6 +25,38 @@ contextBridge.exposeInMainWorld('electronAPI', {
   minimizeWindow: () => ipcRenderer.send('minimize-window'),
   maximizeWindow: () => ipcRenderer.send('maximize-window'),
   closeWindow: () => ipcRenderer.send('close-window'),
+
+  // === APIs DE RAILWAY ===
+  railwayTestConnection: () => ipcRenderer.invoke('railway:test-connection'),
+  railwaySavePdf: (fumigationData, pdfBufferArray, hasMapImage) => 
+    ipcRenderer.invoke('railway:save-pdf', fumigationData, pdfBufferArray, hasMapImage),
+  railwayDownloadPdf: (fumigationId) => 
+    ipcRenderer.invoke('railway:download-pdf', fumigationId),
+  railwayPdfExists: (fumigationId) => 
+    ipcRenderer.invoke('railway:pdf-exists', fumigationId),
+  railwayGetPdfMetadata: (fumigationId) => 
+    ipcRenderer.invoke('railway:get-pdf-metadata', fumigationId),
+  railwayDeletePdf: (fumigationId) => 
+    ipcRenderer.invoke('railway:delete-pdf', fumigationId),
+
+  // Generic invoke para compatibilidad
+  invoke: (channel, ...args) => {
+    const validChannels = [
+      'railway:test-connection',
+      'railway:save-pdf', 
+      'railway:download-pdf',
+      'railway:pdf-exists',
+      'railway:get-pdf-metadata',
+      'railway:delete-pdf'
+    ];
+    
+    if (validChannels.includes(channel)) {
+      return ipcRenderer.invoke(channel, ...args);
+    } else {
+      console.warn(`Canal IPC no reconocido: ${channel}`);
+      return Promise.reject(new Error(`Canal IPC no permitido: ${channel}`));
+    }
+  }
 });
 
 // Comportamientos de seguridad adicionales

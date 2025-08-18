@@ -2,11 +2,11 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const log = require('electron-log');
+const { registerRailwayHandlers, unregisterRailwayHandlers } = require('./railwayHandlers');
 
-// Determinar modo desarrollo de forma robusta
+// Determinar modo desarrollo de forma robusta - CORREGIDO
 const isDev = process.env.NODE_ENV === 'development' || 
-               process.env.ELECTRON_IS_DEV === 'true' || 
-               !app.isPackaged;
+               process.env.ELECTRON_IS_DEV === 'true';
 
 // Configuración del log con manejo de errores
 try {
@@ -277,6 +277,13 @@ function createWindow() {
       }
     });
 
+    // TEMPORAL: Atajo para abrir DevTools con F12
+    mainWindow.webContents.on('before-input-event', (event, input) => {
+      if (input.key === 'F12') {
+        mainWindow.webContents.toggleDevTools();
+      }
+    });
+
     // Manejar errores de carga
     mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
       console.error(`❌ Error de carga: ${errorCode} - ${errorDescription} - URL: ${validatedURL}`);
@@ -338,15 +345,28 @@ if (!gotTheLock) {
 app.commandLine.appendSwitch('disable-web-security'); // Solo para debug
 app.commandLine.appendSwitch('--no-sandbox'); // Ayuda con algunos problemas de seguridad
 
-// Inicializar la aplicación
+// Inicializar la aplicación - CORREGIDO
 app.whenReady().then(() => {
   console.log('🚀 App ready, creando ventana...');
+  
+  try {
+    registerRailwayHandlers();
+    console.log('✅ Railway handlers registrados exitosamente');
+  } catch (error) {
+    console.error('❌ Error registrando Railway handlers:', error);
+  }
+  
   createWindow();
 });
 
 // Salir cuando todas las ventanas estén cerradas
 app.on('window-all-closed', () => {
   console.log('🔚 Todas las ventanas cerradas');
+  try {
+    unregisterRailwayHandlers();
+  } catch (error) {
+    console.error('❌ Error en cleanup Railway:', error);
+  }
   if (process.platform !== 'darwin') {
     app.quit();
   }
@@ -382,6 +402,15 @@ process.on('uncaughtException', (error) => {
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Promesa rechazada:', reason);
+});
+
+app.on('before-quit', (event) => {
+  console.log('🧹 Limpiando Railway antes de cerrar...');
+  try {
+    unregisterRailwayHandlers();
+  } catch (error) {
+    console.error('❌ Error en cleanup Railway:', error);
+  }
 });
 
 // Log final
