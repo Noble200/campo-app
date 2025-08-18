@@ -1,6 +1,7 @@
-// src/components/panels/Fumigations/FumigationPDFDialog.js
-import React, { useState, useRef } from 'react';
+// src/components/panels/Fumigations/FumigationPDFDialog.js - ACTUALIZADO con Railway
+import React, { useState, useRef, useEffect } from 'react';
 import { generateFumigationPDF, downloadFumigationPDF } from '../../../utils/fumigationPdfGenerator';
+const RailwayPdfService = require('../../../services/railwayPdfService');
 
 const FumigationPDFDialog = ({ 
   fumigation, 
@@ -11,9 +12,59 @@ const FumigationPDFDialog = ({
   const [mapImage, setMapImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [generating, setGenerating] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [pdfPreview, setPdfPreview] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [pdfExistsInRailway, setPdfExistsInRailway] = useState(false);
+  const [railwayPdfMetadata, setRailwayPdfMetadata] = useState(null);
+  const [testingConnection, setTestingConnection] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Verificar si existe PDF en Railway al abrir el diálogo
+  useEffect(() => {
+    checkPdfInRailway();
+  }, [fumigation.id]);
+
+  // Verificar si existe PDF en Railway
+  const checkPdfInRailway = async () => {
+    try {
+      console.log('🔍 Verificando PDF existente en Railway para:', fumigation.id);
+      const metadata = await RailwayPdfService.getPdfMetadata(fumigation.id);
+      
+      if (metadata) {
+        setPdfExistsInRailway(true);
+        setRailwayPdfMetadata(metadata);
+        console.log('✅ PDF encontrado en Railway:', metadata);
+      } else {
+        setPdfExistsInRailway(false);
+        setRailwayPdfMetadata(null);
+        console.log('ℹ️ No hay PDF en Railway para esta fumigación');
+      }
+    } catch (error) {
+      console.error('❌ Error verificando PDF en Railway:', error);
+      setPdfExistsInRailway(false);
+      setRailwayPdfMetadata(null);
+    }
+  };
+
+  // Test de conexión a Railway
+  const testRailwayConnection = async () => {
+    try {
+      setTestingConnection(true);
+      const isConnected = await RailwayPdfService.testConnection();
+      
+      if (isConnected) {
+        alert('✅ Conexión a Railway exitosa');
+      } else {
+        alert('❌ Error de conexión a Railway');
+      }
+    } catch (error) {
+      console.error('Error en test de conexión:', error);
+      alert('❌ Error de conexión a Railway: ' + error.message);
+    } finally {
+      setTestingConnection(false);
+    }
+  };
 
   // Manejar selección de imagen
   const handleImageSelect = (e) => {
@@ -70,20 +121,93 @@ const FumigationPDFDialog = ({
     }
   };
 
-  // Descargar PDF
-  const handleDownloadPDF = async () => {
+  // Generar y guardar PDF nuevo (local + Railway)
+  const handleGenerateAndSavePDF = async () => {
     try {
       setGenerating(true);
+      console.log('🔄 Generando nuevo PDF y guardando en Railway...');
       
+      // 1. Generar PDF
+      const generator = await generateFumigationPDF(fumigation, products, mapImage);
+      
+      // 2. Guardar PDF localmente
       await downloadFumigationPDF(fumigation, products, mapImage);
       
-      // Cerrar el diálogo después de descargar
+      // 3. Convertir PDF a buffer para Railway
+      const pdfBlob = generator.output('blob');
+      const arrayBuffer = await pdfBlob.arrayBuffer();
+      const pdfBuffer = Buffer.from(arrayBuffer);
+      
+      // 4. Guardar en Railway
+      const fumigationData = {
+        id: fumigation.id,
+        date: fumigation.applicationDate || fumigation.date || new Date(),
+        fieldName: getFieldName(),
+        crop: fumigation.crop,
+        applicator: fumigation.applicator,
+        totalSurface: fumigation.totalSurface,
+        surfaceUnit: fumigation.surfaceUnit
+      };
+      
+      const railwayResult = await RailwayPdfService.savePdf(
+        fumigationData, 
+        pdfBuffer, 
+        !!mapImage
+      );
+      
+      console.log('✅ PDF guardado exitosamente:', railwayResult);
+      
+      // 5. Actualizar estado
+      await checkPdfInRailway();
+      
+      alert('✅ PDF generado y guardado exitosamente en local y Railway');
       onClose();
+      
     } catch (error) {
-      console.error('Error al descargar PDF:', error);
-      alert('Error al generar el PDF: ' + error.message);
+      console.error('❌ Error al generar y guardar PDF:', error);
+      alert('❌ Error al generar el PDF: ' + error.message);
     } finally {
       setGenerating(false);
+    }
+  };
+
+  // Descargar PDF existente desde Railway
+  const handleDownloadFromRailway = async () => {
+    try {
+      setDownloading(true);
+      console.log('📥 Descargando PDF desde Railway...');
+      
+      const result = await RailwayPdfService.downloadPdf(fumigation.id);
+      
+      if (result.success) {
+        // Crear blob del PDF
+        const pdfBlob = new Blob([result.pdfBuffer], { type: 'application/pdf' });
+        
+        // Crear URL de descarga
+        const url = window.URL.createObjectURL(pdfBlob);
+        
+        // Crear enlace de descarga
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Fumigacion_${fumigation.orderNumber || fumigation.id}_${new Date().toISOString().split('T')[0]}.pdf`;
+        
+        // Ejecutar descarga
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Limpiar URL
+        window.URL.revokeObjectURL(url);
+        
+        console.log('✅ PDF descargado exitosamente desde Railway');
+        alert('✅ PDF descargado exitosamente');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error al descargar PDF desde Railway:', error);
+      alert('❌ Error al descargar PDF: ' + error.message);
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -132,10 +256,19 @@ const FumigationPDFDialog = ({
     });
   };
 
+  // Formatear tamaño de archivo
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   return (
     <div className="dialog fumigation-pdf-dialog">
       <div className="dialog-header">
-        <h2 className="dialog-title">Generar PDF de Fumigación</h2>
+        <h2 className="dialog-title">Gestión de PDF - Fumigación</h2>
         <button className="dialog-close" onClick={onClose}>
           <i className="fas fa-times"></i>
         </button>
@@ -144,6 +277,67 @@ const FumigationPDFDialog = ({
       <div className="dialog-body">
         {!showPreview ? (
           <div className="pdf-generator-content">
+            {/* Estado del PDF en Railway */}
+            {pdfExistsInRailway && railwayPdfMetadata && (
+              <div className="pdf-status-section">
+                <h3 className="section-title">
+                  <i className="fas fa-cloud"></i> PDF Existente en Railway
+                </h3>
+                
+                <div className="pdf-status-info">
+                  <div className="pdf-status-item">
+                    <span className="status-label">Estado:</span>
+                    <span className="status-value success">
+                      <i className="fas fa-check-circle"></i> Disponible
+                    </span>
+                  </div>
+                  <div className="pdf-status-item">
+                    <span className="status-label">Creado:</span>
+                    <span className="status-value">
+                      {new Date(railwayPdfMetadata.created_at).toLocaleString('es-ES')}
+                    </span>
+                  </div>
+                  <div className="pdf-status-item">
+                    <span className="status-label">Tamaño:</span>
+                    <span className="status-value">
+                      {formatFileSize(railwayPdfMetadata.pdf_size)}
+                    </span>
+                  </div>
+                  <div className="pdf-status-item">
+                    <span className="status-label">Incluye mapa:</span>
+                    <span className="status-value">
+                      {railwayPdfMetadata.has_map_image ? 
+                        <><i className="fas fa-check text-success"></i> Sí</> : 
+                        <><i className="fas fa-times text-muted"></i> No</>
+                      }
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pdf-download-section">
+                  <button
+                    className="btn btn-primary btn-download"
+                    onClick={handleDownloadFromRailway}
+                    disabled={downloading}
+                  >
+                    {downloading ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm mr-2"></span>
+                        Descargando...
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-cloud-download-alt"></i> Descargar PDF Existente
+                      </>
+                    )}
+                  </button>
+                  <p className="help-text">
+                    Descarga el PDF previamente generado sin necesidad de recrearlo.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Resumen de la fumigación */}
             <div className="fumigation-summary-section">
               <h3 className="section-title">
@@ -228,58 +422,65 @@ const FumigationPDFDialog = ({
               </p>
               
               {!imagePreview ? (
-                <div className="image-upload-area">
+                <div className="image-upload-section">
                   <input
                     type="file"
                     ref={fileInputRef}
-                    accept="image/*"
                     onChange={handleImageSelect}
+                    accept="image/*"
                     style={{ display: 'none' }}
                   />
                   
-                  <div 
-                    className="upload-dropzone"
+                  <button
+                    className="btn btn-outline btn-upload"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <div className="upload-icon">
-                      <i className="fas fa-cloud-upload-alt"></i>
-                    </div>
-                    <div className="upload-text">
-                      <strong>Haz clic para seleccionar una imagen</strong>
-                      <p>JPG, PNG, GIF hasta 10MB</p>
-                    </div>
-                  </div>
+                    <i className="fas fa-cloud-upload-alt"></i> Seleccionar imagen del mapa
+                  </button>
                 </div>
               ) : (
-                <div className="image-preview-container">
-                  <div className="image-preview">
-                    <img src={imagePreview} alt="Preview del mapa" />
-                  </div>
-                  
+                <div className="image-preview">
+                  <img src={imagePreview} alt="Preview del mapa" />
                   <div className="image-actions">
                     <button
-                      className="btn btn-sm btn-outline"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <i className="fas fa-sync-alt"></i> Cambiar imagen
-                    </button>
-                    
-                    <button
-                      className="btn btn-sm btn-outline btn-danger"
+                      className="btn btn-outline btn-sm"
                       onClick={handleRemoveImage}
                     >
-                      <i className="fas fa-trash"></i> Eliminar
+                      <i className="fas fa-trash"></i> Eliminar imagen
                     </button>
                   </div>
                 </div>
               )}
             </div>
+
+            {/* Sección de test de conexión */}
+            <div className="railway-test-section">
+              <h3 className="section-title">
+                <i className="fas fa-database"></i> Estado de Railway
+              </h3>
+              
+              <button
+                className="btn btn-outline btn-sm"
+                onClick={testRailwayConnection}
+                disabled={testingConnection}
+              >
+                {testingConnection ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm mr-2"></span>
+                    Probando...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-network-wired"></i> Probar conexión Railway
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         ) : (
-          /* Preview del PDF */
           <div className="pdf-preview-section">
             <h3 className="section-title">
-              <i className="fas fa-file-pdf"></i> Preview del PDF
+              <i className="fas fa-eye"></i> Preview del PDF
             </h3>
             
             <div className="pdf-preview-container">
@@ -309,17 +510,17 @@ const FumigationPDFDialog = ({
               
               <button
                 className="btn btn-primary"
-                onClick={handleDownloadPDF}
+                onClick={handleGenerateAndSavePDF}
                 disabled={generating}
               >
                 {generating ? (
                   <>
                     <span className="spinner-border spinner-border-sm mr-2"></span>
-                    Descargando...
+                    Guardando...
                   </>
                 ) : (
                   <>
-                    <i className="fas fa-download"></i> Descargar PDF
+                    <i className="fas fa-save"></i> Guardar PDF
                   </>
                 )}
               </button>
@@ -329,7 +530,7 @@ const FumigationPDFDialog = ({
       </div>
       
       <div className="dialog-footer">
-        <button className="btn btn-outline" onClick={onClose} disabled={generating}>
+        <button className="btn btn-outline" onClick={onClose} disabled={generating || downloading}>
           Cancelar
         </button>
         
@@ -338,7 +539,7 @@ const FumigationPDFDialog = ({
             <button
               className="btn btn-secondary"
               onClick={handleGeneratePreview}
-              disabled={generating}
+              disabled={generating || downloading}
             >
               {generating ? (
                 <>
@@ -354,17 +555,17 @@ const FumigationPDFDialog = ({
             
             <button
               className="btn btn-primary"
-              onClick={handleDownloadPDF}
-              disabled={generating}
+              onClick={handleGenerateAndSavePDF}
+              disabled={generating || downloading}
             >
               {generating ? (
                 <>
                   <span className="spinner-border spinner-border-sm mr-2"></span>
-                  Descargando...
+                  Generando...
                 </>
               ) : (
                 <>
-                  <i className="fas fa-download"></i> Descargar PDF
+                  <i className="fas fa-plus"></i> Generar Nuevo PDF
                 </>
               )}
             </button>

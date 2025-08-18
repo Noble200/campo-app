@@ -1,4 +1,3 @@
-// src/components/panels/Purchases/PurchaseDialog.js - MEJORADO con nuevos estilos
 import React, { useState, useEffect } from 'react';
 
 const PurchaseDialog = ({
@@ -21,10 +20,24 @@ const PurchaseDialog = ({
   
   const [newProduct, setNewProduct] = useState({
     name: '',
+    code: '',
     category: 'insumo',
+    manufacturer: '',
+    activeIngredient: '',
+    unitSize: '',
+    unitSizeUnit: 'L',
+    storageType: 'bolsas',
     unit: 'kg',
     quantity: '',
-    unitCost: ''
+    unitCost: '',
+    lotNumber: '',
+    storageConditions: '',
+    dimensions: '',
+    expiryDate: '',
+    supplierCode: '',
+    supplierName: '',
+    supplierContact: '',
+    notes: ''
   });
   
   const [loading, setLoading] = useState(false);
@@ -104,10 +117,24 @@ const PurchaseDialog = ({
     // Resetear formulario de producto
     setNewProduct({
       name: '',
+      code: '',
       category: 'insumo',
+      manufacturer: '',
+      activeIngredient: '',
+      unitSize: '',
+      unitSizeUnit: 'L',
+      storageType: 'bolsas',
       unit: 'kg',
       quantity: '',
-      unitCost: ''
+      unitCost: '',
+      lotNumber: '',
+      storageConditions: '',
+      dimensions: '',
+      expiryDate: '',
+      supplierCode: '',
+      supplierName: '',
+      supplierContact: '',
+      notes: ''
     });
     
     setError('');
@@ -329,8 +356,19 @@ const PurchaseDialog = ({
                   <option value="herramienta">Herramienta</option>
                   <option value="semilla">Semilla</option>
                   <option value="fertilizante">Fertilizante</option>
-                  <option value="pesticida">Pesticida</option>
+                  <option value="fertilizante_foliar">Fertilizante Foliar</option>
+                  <option value="curasemilla_quimico">Curasemilla Químico</option>
+                  <option value="curasemilla_biologico">Curasemilla Biológico</option>
+                  <option value="inoculante">Inoculante</option>
+                  <option value="insecticida">Insecticida</option>
+                  <option value="fungicida">Fungicida</option>
+                  <option value="herbicida">Herbicida</option>
+                  <option value="lubricante">Lubricante</option>
                   <option value="combustible">Combustible</option>
+                  <option value="coadyuvante">Coadyuvante</option>
+                  <option value="bioestimulante">Bioestimulante</option>
+                  <option value="pesticida">Pesticida</option>
+                  <option value="maquinaria">Maquinaria</option>
                   <option value="otro">Otro</option>
                 </select>
               </div>
@@ -354,7 +392,34 @@ const PurchaseDialog = ({
                   <option value="unidad">Unidades</option>
                   <option value="ton">Toneladas</option>
                   <option value="bolsa">Bolsas</option>
+                  <option value="ml">Mililitros</option>
+                  <option value="g">Gramos</option>
+                  <option value="ha">Hectáreas</option>
+                  <option value="dosis">Dosis</option>
+                  <option value="aplicaciones">Aplicaciones</option>
+                  <option value="paquete">Paquetes</option>
+                  <option value="caja">Cajas</option>
+                  <option value="galon">Galones</option>
+                  <option value="m">Metros</option>
+                  <option value="m2">Metros cuadrados</option>
+                  <option value="m3">Metros cúbicos</option>
                 </select>
+              </div>
+
+              <div className="form-col">
+                <label htmlFor="productCode" className="form-label">
+                  Código
+                </label>
+                <input
+                  type="text"
+                  id="productCode"
+                  name="code"
+                  className="form-control"
+                  value={newProduct.code}
+                  onChange={handleProductChange}
+                  placeholder="Código del producto"
+                  disabled={loading}
+                />
               </div>
               
               <div className="form-col">
@@ -392,17 +457,124 @@ const PurchaseDialog = ({
                   disabled={loading}
                 />
               </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-col">
+                <label htmlFor="productManufacturer" className="form-label">
+                  Fabricante
+                </label>
+                <input
+                  type="text"
+                  id="productManufacturer"
+                  name="manufacturer"
+                  className="form-control"
+                  value={newProduct.manufacturer}
+                  onChange={handleProductChange}
+                  placeholder="Fabricante del producto"
+                  disabled={loading}
+                />
+              </div>
               
+              <div className="form-col">
+                <label htmlFor="productActiveIngredient" className="form-label">
+                  Principio Activo
+                </label>
+                <input
+                  type="text"
+                  id="productActiveIngredient"
+                  name="activeIngredient"
+                  className="form-control"
+                  value={newProduct.activeIngredient}
+                  onChange={handleProductChange}
+                  placeholder="Principio activo (opcional)"
+                  disabled={loading}
+                />
+              </div>
+              
+              <div className="form-col">
+                <label htmlFor="productUnitSize" className="form-label">
+                  Tamaño de Unidad
+                </label>
+                <input
+                  type="number"
+                  id="productUnitSize"
+                  name="unitSize"
+                  className="form-control"
+                  value={newProduct.unitSize}
+                  onChange={handleProductChange}
+                  placeholder="Ej: 1, 2.5, 20"
+                  disabled={loading}
+                  step="0.1"
+                  min="0"
+                />
+              </div>
+              
+              <div className="form-col">
+                <label htmlFor="productUnitSizeUnit" className="form-label">
+                  Unidad de Tamaño
+                </label>
+                <select
+                  id="productUnitSizeUnit"
+                  name="unitSizeUnit"
+                  className="form-control"
+                  value={newProduct.unitSizeUnit}
+                  onChange={handleProductChange}
+                  disabled={loading}
+                >
+                  <option value="L">Litros</option>
+                  <option value="kg">Kilogramos</option>
+                  <option value="g">Gramos</option>
+                  <option value="ml">Mililitros</option>
+                  <option value="unidad">Unidades</option>
+                  <option value="ton">Toneladas</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-col">
+                <label htmlFor="productLotNumber" className="form-label">
+                  Número de Lote
+                </label>
+                <input
+                  type="text"
+                  id="productLotNumber"
+                  name="lotNumber"
+                  className="form-control"
+                  value={newProduct.lotNumber}
+                  onChange={handleProductChange}
+                  placeholder="Número de lote"
+                  disabled={loading}
+                />
+              </div>
+              
+              <div className="form-col">
+                <label htmlFor="productExpiryDate" className="form-label">
+                  Fecha de Vencimiento
+                </label>
+                <input
+                  type="date"
+                  id="productExpiryDate"
+                  name="expiryDate"
+                  className="form-control"
+                  value={newProduct.expiryDate}
+                  onChange={handleProductChange}
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
               <div className="form-col" style={{justifyContent: 'flex-end'}}>
-                <label className="form-label">&nbsp;</label>
                 <button
                   type="button"
                   className="btn btn-primary"
                   onClick={handleAddProduct}
                   disabled={loading}
-                  style={{ width: '100%' }}
+                  style={{ width: 'auto', padding: '12px 24px' }}
                 >
-                  <i className="fas fa-plus"></i> Agregar
+                  <i className="fas fa-plus"></i> Agregar Producto
                 </button>
               </div>
             </div>
@@ -585,40 +757,40 @@ const PurchaseDialog = ({
             />
           </div>
         </div>
-      </form>
 
-      <div className="dialog-footer">
-        <div className="footer-left">
-          <button 
-            type="button" 
-            className="btn btn-outline" 
-            onClick={onClose}
-            disabled={loading}
+        <div className="dialog-footer">
+          <div className="footer-left">
+            <button 
+              type="button" 
+              className="btn btn-outline" 
+              onClick={onClose}
+              disabled={loading}
+            >
+              <i className="fas fa-times"></i>
+              Cancelar
+            </button>
+          </div>
+          
+          <button
+            type="submit"
+            className="btn btn-primary"
+            onClick={handleSubmit}
+            disabled={loading || formData.products.length === 0}
           >
-            <i className="fas fa-times"></i>
-            Cancelar
+            {loading ? (
+              <>
+                <span className="spinner-border-sm"></span>
+                {isNew ? 'Creando...' : 'Guardando...'}
+              </>
+            ) : (
+              <>
+                <i className="fas fa-save"></i>
+                {isNew ? 'Crear Compra' : 'Guardar Cambios'}
+              </>
+            )}
           </button>
         </div>
-        
-        <button
-          type="submit"
-          className="btn btn-primary"
-          onClick={handleSubmit}
-          disabled={loading || formData.products.length === 0}
-        >
-          {loading ? (
-            <>
-              <span className="spinner-border-sm"></span>
-              {isNew ? 'Creando...' : 'Guardando...'}
-            </>
-          ) : (
-            <>
-              <i className="fas fa-save"></i>
-              {isNew ? 'Crear Compra' : 'Guardar Cambios'}
-            </>
-          )}
-        </button>
-      </div>
+      </form>
     </div>
   );
 };

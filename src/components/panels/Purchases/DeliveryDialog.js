@@ -1,4 +1,3 @@
-// src/components/panels/Purchases/DeliveryDialog.js - MEJORADO con nuevos estilos
 import React, { useState, useEffect } from 'react';
 
 const DeliveryDialog = ({
