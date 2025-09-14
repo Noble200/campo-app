@@ -62,17 +62,18 @@ class RailwayPdfService {
         throw new Error(result.error);
       }
 
-      // Convertir array de vuelta a Buffer
-      const pdfBuffer = Buffer.from(result.data.pdfBuffer);
+      // ✅ NO usar Buffer.from() - ya es un array
+      const pdfArray = result.data.pdfBuffer;
       
       console.log('✅ PDF descargado exitosamente (Frontend):', {
         fumigationId,
-        size: result.data.metadata.size
+        size: result.data.metadata.size,
+        arrayLength: pdfArray.length
       });
 
       return {
         success: true,
-        pdfBuffer: pdfBuffer,
+        pdfBuffer: pdfArray, // ← Array, no Buffer
         metadata: result.data.metadata
       };
 
