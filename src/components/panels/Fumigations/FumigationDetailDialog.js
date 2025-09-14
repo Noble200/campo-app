@@ -1,5 +1,6 @@
-// src/components/panels/Fumigations/FumigationDetailDialog.js - Actualizado
+// src/components/panels/Fumigations/FumigationDetailDialog.js - VERSIÓN FINAL LIMPIA
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import FumigationPDFDialog from './FumigationPDFDialog';
 
 const FumigationDetailDialog = ({
@@ -167,7 +168,8 @@ const FumigationDetailDialog = ({
                 </div>
                 <div className="fumigation-summary-content">
                   <h3 className="fumigation-name">
-                    {fumigation.orderNumber ? `Orden #${fumigation.orderNumber}` : fumigation.establishment}
+                    {fumigation.orderNumber ? 
+                      `Orden #${fumigation.orderNumber}` : fumigation.establishment}
                   </h3>
                   <div className="fumigation-field">{fumigation.crop} - {getFieldName()}</div>
                   <div className="fumigation-establishment">
@@ -190,9 +192,9 @@ const FumigationDetailDialog = ({
                 </div>
               </div>
               
-              {/* Acciones rápidas - ACTUALIZADO */}
+              {/* Acciones rápidas */}
               <div className="fumigation-actions-bar">
-                {/* Botón de generar PDF - NUEVO */}
+                {/* Botón de generar PDF */}
                 <button className="btn btn-secondary" onClick={handleOpenPDFDialog}>
                   <i className="fas fa-file-pdf"></i> Generar PDF
                 </button>
@@ -310,30 +312,21 @@ const FumigationDetailDialog = ({
                       <thead>
                         <tr>
                           <th>Producto</th>
-                          <th>Dosis/ha</th>
+                          <th>Dosis</th>
                           <th>Cantidad total</th>
-                          <th>Conversión</th>
                         </tr>
                       </thead>
                       <tbody>
                         {getSelectedProducts().map((product, index) => (
                           <tr key={index}>
                             <td>
-                              <div className="product-info">
-                                {product.name}
-                              </div>
+                              <strong>{product.name}</strong>
                             </td>
-                            <td>{product.dosePerHa} {product.doseUnit}</td>
-                            <td><strong>{parseFloat(product.totalQuantity || 0).toFixed(2)} {product.unit}</strong></td>
                             <td>
-                              {product.conversion && (
-                                <span className="conversion-display">{product.conversion}</span>
-                              )}
-                              {product.doseInLiters && product.doseUnit !== 'L/ha' && (
-                                <div className="dose-conversion">
-                                  ≈ {product.doseInLiters.toFixed(3)} L/ha
-                                </div>
-                              )}
+                              {product.dose} {product.unit}/ha
+                            </td>
+                            <td>
+                              {(product.dose * fumigation.totalSurface).toFixed(2)} {product.unit}
                             </td>
                           </tr>
                         ))}
@@ -341,12 +334,12 @@ const FumigationDetailDialog = ({
                     </table>
                   </div>
                 ) : (
-                  <p>No hay productos registrados para esta fumigación.</p>
+                  <p className="text-muted">No se han seleccionado productos para esta fumigación.</p>
                 )}
               </div>
-              
+
               {/* Condiciones climáticas */}
-              {fumigation.weatherConditions && Object.keys(fumigation.weatherConditions).some(key => fumigation.weatherConditions[key]) && (
+              {fumigation.weatherConditions && (
                 <div className="detail-section">
                   <h3 className="section-title">
                     <i className="fas fa-cloud-sun"></i> Condiciones climáticas
@@ -383,7 +376,7 @@ const FumigationDetailDialog = ({
                   </div>
                 </div>
               )}
-              
+
               {/* Información de finalización */}
               {fumigation.status === 'completed' && (
                 <div className="detail-section">
@@ -394,14 +387,14 @@ const FumigationDetailDialog = ({
                   <div className="detail-grid">
                     {fumigation.startDateTime && (
                       <div className="detail-item">
-                        <span className="detail-label">Hora de inicio</span>
+                        <span className="detail-label">Inicio</span>
                         <span className="detail-value">{formatDateTime(fumigation.startDateTime)}</span>
                       </div>
                     )}
                     
                     {fumigation.endDateTime && (
                       <div className="detail-item">
-                        <span className="detail-label">Hora de finalización</span>
+                        <span className="detail-label">Finalización</span>
                         <span className="detail-value">{formatDateTime(fumigation.endDateTime)}</span>
                       </div>
                     )}
@@ -469,15 +462,26 @@ const FumigationDetailDialog = ({
         </div>
       </div>
 
-      {/* Diálogo PDF - NUEVO */}
+      {/* Diálogo PDF */}
       {pdfDialogOpen && (
-        <div className="dialog-overlay">
-          <FumigationPDFDialog
-            fumigation={fumigation}
-            fields={fields}
-            products={products}
-            onClose={handleClosePDFDialog}
-          />
+        <div className="pdf-dialog-overlay" style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 999999,
+          pointerEvents: 'auto'
+        }}>
+          <div className="pdf-dialog-content" onClick={(e) => e.stopPropagation()}>
+            <FumigationPDFDialog
+              fumigation={fumigation}
+              fields={fields}
+              products={products}
+              onClose={handleClosePDFDialog}
+            />
+          </div>
         </div>
       )}
     </>
